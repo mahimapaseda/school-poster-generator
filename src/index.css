@@ -74,6 +74,118 @@ body {
   color: var(--text-dim);
 }
 
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 6px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.more-options {
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.more-options-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.more-options-toggle:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.chevron {
+  display: inline-block;
+  color: var(--text-dim);
+  transition: transform 0.15s;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.more-options-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 14px 16px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.theme-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.theme-swatch {
+  position: relative;
+  width: calc(25% - 6px);
+  min-height: 44px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+}
+
+.theme-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.theme-swatch-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 70%);
+}
+
 .dropzone {
   display: flex;
   align-items: center;

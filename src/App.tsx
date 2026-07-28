@@ -5,6 +5,8 @@ import {
   getAspectRatio,
   renderPoster,
   type AspectRatioId,
+  type ColorThemeId,
+  type PatternId,
   type Placement,
 } from './lib/renderPoster';
 import { getCutout, trimTransparent } from './lib/removeBackground';
@@ -17,8 +19,12 @@ export default function App() {
   const [processing, setProcessing] = useState(false);
   const [logo, setLogo] = useState<ImageBitmap | null>(null);
   const [name, setName] = useState('');
+  const [level, setLevel] = useState('');
+  const [title, setTitle] = useState('');
   const [placement, setPlacement] = useState<Placement>(1);
-  const [aspectRatio, setAspectRatio] = useState<AspectRatioId>('3:4');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioId>('4:5');
+  const [colorTheme, setColorTheme] = useState<ColorThemeId>('navy');
+  const [pattern, setPattern] = useState<PatternId>('pixels');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,7 +60,6 @@ export default function App() {
       setLogo(null);
       return;
     }
-    // Trim transparent padding (common after removebg) so the crest scales full-size.
     createImageBitmap(file).then(trimTransparent).then(setLogo);
   }, []);
 
@@ -69,14 +74,18 @@ export default function App() {
         subjectIsCutout: cutout !== null,
         logo,
         name,
+        level,
+        title,
         placement,
         aspectRatio,
+        colorTheme,
+        pattern,
       });
     });
     return () => {
       cancelled = true;
     };
-  }, [rawPhoto, cutout, logo, name, placement, aspectRatio]);
+  }, [rawPhoto, cutout, logo, name, level, title, placement, aspectRatio, colorTheme, pattern]);
 
   const handleDownload = useCallback(() => {
     const canvas = canvasRef.current;
@@ -107,14 +116,22 @@ export default function App() {
           hasPhoto={photoFile !== null}
           processing={processing}
           name={name}
+          level={level}
+          title={title}
           placement={placement}
           aspectRatio={aspectRatio}
+          colorTheme={colorTheme}
+          pattern={pattern}
           error={error}
           onPhotoChange={setPhotoFile}
           onLogoChange={handleLogoChange}
           onNameChange={setName}
+          onLevelChange={setLevel}
+          onTitleChange={setTitle}
           onPlacementChange={setPlacement}
           onAspectRatioChange={setAspectRatio}
+          onColorThemeChange={setColorTheme}
+          onPatternChange={setPattern}
           onDownload={handleDownload}
         />
       </aside>

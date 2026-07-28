@@ -17,10 +17,11 @@ Open the printed URL (default http://localhost:5173).
 
 1. Drag in (or browse for) the student photo. Background removal and color adjustment start automatically; the first run downloads the segmentation model (~40 MB), so it takes a little longer.
 2. Pick the placement (1st, 2nd, or 3rd place).
-3. Choose an image ratio (`3:4`, `1:1`, or `9:16`). The live preview and export update immediately.
-4. Upload the school logo (transparent PNG recommended).
-5. Type the student name.
-6. Click **Download poster (PNG)** — the exported file is named `poster-<name>-P<n>-<ratio>.png`.
+3. Open **More options** to choose image ratio (`4:5`, `3:4`, `1:1`, or `9:16`), color theme (Navy, Emerald, Crimson, Charcoal, Violet, Ocean, Sunset, Forest, Gold, Slate, Rose, Teal, Midnight, Maroon), and background pattern (Pixels, Dots, Lines, Grid, or None).
+4. Enter the **Level** (e.g. "All Island", "Central Province") and **Title** (e.g. "Innovation & Robotic Competition", "Music Competition").
+5. Upload the school logo (transparent PNG recommended) — shown in the top-left corner.
+6. Type the student name.
+7. Click **Download poster (PNG)** — the exported file is named `poster-<name>-P<n>-<ratio>.png`.
 
 ## Build
 

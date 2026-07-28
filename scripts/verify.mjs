@@ -55,8 +55,10 @@ const logoBuffer = Buffer.from(logoDataUrl.split(',')[1], 'base64');
 const inputs = page.locator('input[type="file"]');
 await inputs.nth(0).setInputFiles(PHOTO_PATH);
 await inputs.nth(1).setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: logoBuffer });
-await page.getByRole('button', { name: '2nd place' }).click();
+await page.getByRole('button', { name: '2nd Place' }).click();
 await page.locator('#student-name').fill('Alex Fernando');
+await page.locator('#competition-level').fill('Central Province');
+await page.locator('#competition-title').fill('Innovation & Robotic Competition');
 
 console.log('inputs set, waiting for background removal (model download on first run)...');
 await page.locator('.preview-overlay').waitFor({ state: 'hidden', timeout: 600_000 });
@@ -76,5 +78,17 @@ if (errorText) console.log('form error shown:', errorText);
 
 await canvas.screenshot({ path: 'verify/poster-final.png' });
 console.log('final poster saved to verify/poster-final.png');
+
+for (const ratio of ['4:5', '3:4', '1:1', '9:16']) {
+  await page.getByRole('button', { name: ratio, exact: true }).click();
+  await page.waitForTimeout(400);
+  const size = await page.evaluate(() => {
+    const c = document.querySelector('canvas.poster-canvas');
+    return { width: c.width, height: c.height };
+  });
+  const slug = ratio.replace(':', 'x');
+  await canvas.screenshot({ path: `verify/poster-${slug}.png` });
+  console.log(`ratio ${ratio}:`, JSON.stringify(size), `-> verify/poster-${slug}.png`);
+}
 
 await browser.close();
