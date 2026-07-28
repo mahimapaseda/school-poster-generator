@@ -8,7 +8,7 @@ let lastResult: Promise<ImageBitmap> | null = null;
  * which lets the compositor scale it consistently regardless of how much
  * empty space surrounded the person in the original photo.
  */
-async function trimTransparent(bitmap: ImageBitmap): Promise<ImageBitmap> {
+export async function trimTransparent(bitmap: ImageBitmap): Promise<ImageBitmap> {
   const canvas = document.createElement('canvas');
   canvas.width = bitmap.width;
   canvas.height = bitmap.height;

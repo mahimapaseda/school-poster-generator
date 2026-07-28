@@ -1,6 +1,6 @@
 export type Placement = 1 | 2 | 3;
 
-export type AspectRatioId = '4:5' | '3:4' | '1:1' | '9:16' | '2:3' | '16:9';
+export type AspectRatioId = '3:4' | '1:1' | '9:16';
 
 export interface AspectRatioOption {
   id: AspectRatioId;
@@ -11,12 +11,9 @@ export interface AspectRatioOption {
 
 /** Long edge stays near 2560 px so export quality is consistent across ratios. */
 export const ASPECT_RATIOS: AspectRatioOption[] = [
-  { id: '4:5', label: '4:5', width: 2048, height: 2560 },
   { id: '3:4', label: '3:4', width: 1920, height: 2560 },
   { id: '1:1', label: '1:1', width: 2048, height: 2048 },
   { id: '9:16', label: '9:16', width: 1440, height: 2560 },
-  { id: '2:3', label: '2:3', width: 1707, height: 2560 },
-  { id: '16:9', label: '16:9', width: 2560, height: 1440 },
 ];
 
 export function getAspectRatio(id: AspectRatioId): AspectRatioOption {
@@ -35,9 +32,9 @@ export interface PosterInputs {
 }
 
 const PLACEMENT_LABELS: Record<Placement, string> = {
-  1: 'FIRST PLACE',
-  2: 'SECOND PLACE',
-  3: 'THIRD PLACE',
+  1: '1st Place',
+  2: '2nd Place',
+  3: '3rd Place',
 };
 
 let fontsReady: Promise<void> | null = null;
@@ -181,6 +178,26 @@ function drawSubject(
   ctx.restore();
 }
 
+/** School logo in the top-left corner (fully opaque, contain-fit in a fixed slot). */
+function drawLogoCorner(
+  ctx: CanvasRenderingContext2D,
+  logo: ImageBitmap | null,
+  w: number,
+  h: number,
+): void {
+  if (!logo) return;
+
+  const scaleRef = Math.min(w, h);
+  const box = Math.round(scaleRef * 0.11);
+  const marginX = Math.round(scaleRef * 0.028);
+  const marginY = Math.round(scaleRef * 0.035);
+  const fit = Math.min(box / logo.width, box / logo.height);
+  const lw = logo.width * fit;
+  const lh = logo.height * fit;
+
+  ctx.drawImage(logo, marginX + (box - lw) / 2, marginY + (box - lh) / 2, lw, lh);
+}
+
 function drawBottomFade(ctx: CanvasRenderingContext2D, w: number, h: number): void {
   const fadeTop = h * 0.8;
   const fade = ctx.createLinearGradient(0, fadeTop, 0, h);
@@ -197,7 +214,7 @@ function drawFooter(
   w: number,
   h: number,
 ): void {
-  const { logo, name, placement } = inputs;
+  const { name, placement } = inputs;
   const scaleRef = Math.min(w, h);
   const baselineY = h * 0.958;
   const labelSize = Math.round(scaleRef * 0.017);
@@ -225,7 +242,12 @@ function drawFooter(
 
   const underline = Math.round(scaleRef * 0.031);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  ctx.fillRect(nameX, baselineY + Math.round(scaleRef * 0.011), underline, Math.max(2, Math.round(scaleRef * 0.002)));
+  ctx.fillRect(
+    nameX,
+    baselineY + Math.round(scaleRef * 0.011),
+    underline,
+    Math.max(2, Math.round(scaleRef * 0.002)),
+  );
 
   const dividerX = nameX - Math.round(scaleRef * 0.021);
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
@@ -234,15 +256,6 @@ function drawFooter(
   ctx.moveTo(dividerX, baselineY - Math.round(scaleRef * 0.038));
   ctx.lineTo(dividerX, baselineY + Math.round(scaleRef * 0.007));
   ctx.stroke();
-
-  if (logo) {
-    const box = Math.round(scaleRef * 0.064);
-    const boxRight = dividerX - Math.round(scaleRef * 0.021);
-    const fit = Math.min(box / logo.width, box / logo.height);
-    const lw = logo.width * fit;
-    const lh = logo.height * fit;
-    ctx.drawImage(logo, boxRight - box / 2 - lw / 2, baselineY - Math.round(scaleRef * 0.016) - lh / 2, lw, lh);
-  }
 
   ctx.restore();
 }
@@ -259,4 +272,5 @@ export function renderPoster(canvas: HTMLCanvasElement, inputs: PosterInputs): v
   drawSubject(ctx, inputs, width, height);
   drawBottomFade(ctx, width, height);
   drawFooter(ctx, inputs, width, height);
+  drawLogoCorner(ctx, inputs.logo, width, height);
 }

@@ -7,7 +7,7 @@ import {
   type AspectRatioId,
   type Placement,
 } from './lib/renderPoster';
-import { getCutout } from './lib/removeBackground';
+import { getCutout, trimTransparent } from './lib/removeBackground';
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,7 +18,7 @@ export default function App() {
   const [logo, setLogo] = useState<ImageBitmap | null>(null);
   const [name, setName] = useState('');
   const [placement, setPlacement] = useState<Placement>(1);
-  const [aspectRatio, setAspectRatio] = useState<AspectRatioId>('4:5');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatioId>('3:4');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,7 +54,8 @@ export default function App() {
       setLogo(null);
       return;
     }
-    createImageBitmap(file).then(setLogo);
+    // Trim transparent padding (common after removebg) so the crest scales full-size.
+    createImageBitmap(file).then(trimTransparent).then(setLogo);
   }, []);
 
   useEffect(() => {

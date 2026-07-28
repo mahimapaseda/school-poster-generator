@@ -21,9 +21,9 @@ interface PosterFormProps {
 }
 
 const PLACEMENTS: Array<{ value: Placement; label: string }> = [
-  { value: 1, label: '1st place' },
-  { value: 2, label: '2nd place' },
-  { value: 3, label: '3rd place' },
+  { value: 1, label: '1st Place' },
+  { value: 2, label: '2nd Place' },
+  { value: 3, label: '3rd Place' },
 ];
 
 export function PosterForm({
@@ -139,7 +139,7 @@ export function PosterForm({
           <input type="file" accept="image/*" onChange={handleLogoInput} hidden />
           {logoLabel ?? 'Choose logo image'}
         </label>
-        <span className="field-hint">Transparent PNG works best.</span>
+        <span className="field-hint">Shown in the top-left corner. Transparent PNG works best.</span>
       </div>
 
       <div className="field">
