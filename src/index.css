@@ -103,19 +103,14 @@ body {
   color: #fff;
 }
 
-.more-options {
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.more-options-toggle {
+.more-options-toggle-btn {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border: none;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
   background: transparent;
   color: var(--text);
   font: inherit;
@@ -124,28 +119,82 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
+  transition: all 0.15s;
 }
 
-.more-options-toggle:hover {
-  background: rgba(255, 255, 255, 0.03);
+.more-options-toggle-btn:hover,
+.more-options-toggle-btn.active {
+  border-color: var(--accent);
+  background: rgba(58, 92, 208, 0.1);
 }
 
-.chevron {
-  display: inline-block;
+.chevron-right {
   color: var(--text-dim);
-  transition: transform 0.15s;
+  font-size: 16px;
+  line-height: 1;
 }
 
-.chevron.open {
-  transform: rotate(180deg);
-}
-
-.more-options-body {
+.more-panel {
+  width: 320px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 4px 14px 16px;
-  border-top: 1px solid var(--panel-border);
+  gap: 0;
+  background: #0e1428;
+  border-right: 1px solid var(--panel-border);
+  animation: slide-in 0.18s ease-out;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.more-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.more-panel-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.more-panel-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.more-panel-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.more-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 20px;
+  overflow-y: auto;
 }
 
 .theme-swatches {
@@ -371,6 +420,13 @@ input[type='text']:focus {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--panel-border);
+  }
+
+  .more-panel {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--panel-border);
+    max-height: 50vh;
   }
 
   .poster-canvas {

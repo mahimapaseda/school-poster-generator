@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { MoreOptionsPanel } from './components/MoreOptionsPanel';
 import { PosterForm } from './components/PosterForm';
 import {
   ensureFonts,
@@ -25,6 +26,7 @@ export default function App() {
   const [aspectRatio, setAspectRatio] = useState<AspectRatioId>('4:5');
   const [colorTheme, setColorTheme] = useState<ColorThemeId>('navy');
   const [pattern, setPattern] = useState<PatternId>('pixels');
+  const [moreOpen, setMoreOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -119,9 +121,7 @@ export default function App() {
           level={level}
           title={title}
           placement={placement}
-          aspectRatio={aspectRatio}
-          colorTheme={colorTheme}
-          pattern={pattern}
+          moreOpen={moreOpen}
           error={error}
           onPhotoChange={setPhotoFile}
           onLogoChange={handleLogoChange}
@@ -129,12 +129,22 @@ export default function App() {
           onLevelChange={setLevel}
           onTitleChange={setTitle}
           onPlacementChange={setPlacement}
-          onAspectRatioChange={setAspectRatio}
-          onColorThemeChange={setColorTheme}
-          onPatternChange={setPattern}
+          onToggleMore={() => setMoreOpen((open) => !open)}
           onDownload={handleDownload}
         />
       </aside>
+
+      <MoreOptionsPanel
+        open={moreOpen}
+        aspectRatio={aspectRatio}
+        colorTheme={colorTheme}
+        pattern={pattern}
+        onClose={() => setMoreOpen(false)}
+        onAspectRatioChange={setAspectRatio}
+        onColorThemeChange={setColorTheme}
+        onPatternChange={setPattern}
+      />
+
       <main className="preview">
         <div
           className="preview-frame"

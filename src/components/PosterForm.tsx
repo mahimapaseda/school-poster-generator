@@ -1,13 +1,5 @@
 import { useCallback, useState, type DragEvent, type ChangeEvent } from 'react';
-import {
-  ASPECT_RATIOS,
-  COLOR_THEMES,
-  PATTERNS,
-  type AspectRatioId,
-  type ColorThemeId,
-  type PatternId,
-  type Placement,
-} from '../lib/renderPoster';
+import type { Placement } from '../lib/renderPoster';
 
 interface PosterFormProps {
   hasPhoto: boolean;
@@ -16,9 +8,7 @@ interface PosterFormProps {
   level: string;
   title: string;
   placement: Placement;
-  aspectRatio: AspectRatioId;
-  colorTheme: ColorThemeId;
-  pattern: PatternId;
+  moreOpen: boolean;
   error: string | null;
   onPhotoChange: (file: File | null) => void;
   onLogoChange: (file: File | null) => void;
@@ -26,9 +16,7 @@ interface PosterFormProps {
   onLevelChange: (level: string) => void;
   onTitleChange: (title: string) => void;
   onPlacementChange: (placement: Placement) => void;
-  onAspectRatioChange: (aspectRatio: AspectRatioId) => void;
-  onColorThemeChange: (theme: ColorThemeId) => void;
-  onPatternChange: (pattern: PatternId) => void;
+  onToggleMore: () => void;
   onDownload: () => void;
 }
 
@@ -58,9 +46,7 @@ export function PosterForm({
   level,
   title,
   placement,
-  aspectRatio,
-  colorTheme,
-  pattern,
+  moreOpen,
   error,
   onPhotoChange,
   onLogoChange,
@@ -68,15 +54,12 @@ export function PosterForm({
   onLevelChange,
   onTitleChange,
   onPlacementChange,
-  onAspectRatioChange,
-  onColorThemeChange,
-  onPatternChange,
+  onToggleMore,
   onDownload,
 }: PosterFormProps) {
   const [dragging, setDragging] = useState(false);
   const [photoLabel, setPhotoLabel] = useState<string | null>(null);
   const [logoLabel, setLogoLabel] = useState<string | null>(null);
-  const [moreOpen, setMoreOpen] = useState(false);
 
   const acceptPhoto = useCallback(
     (file: File | undefined) => {
@@ -217,72 +200,15 @@ export function PosterForm({
         />
       </div>
 
-      <div className="more-options">
-        <button
-          type="button"
-          className="more-options-toggle"
-          aria-expanded={moreOpen}
-          onClick={() => setMoreOpen((open) => !open)}
-        >
-          <span>More options</span>
-          <span className={`chevron${moreOpen ? ' open' : ''}`}>▾</span>
-        </button>
-
-        {moreOpen && (
-          <div className="more-options-body">
-            <div className="field">
-              <span className="field-label">Image ratio</span>
-              <div className="segmented wrap">
-                {ASPECT_RATIOS.map(({ id, label }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    className={aspectRatio === id ? 'active' : ''}
-                    onClick={() => onAspectRatioChange(id)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="field">
-              <span className="field-label">Color theme</span>
-              <div className="theme-swatches">
-                {COLOR_THEMES.map((theme) => (
-                  <button
-                    key={theme.id}
-                    type="button"
-                    className={`theme-swatch${colorTheme === theme.id ? ' active' : ''}`}
-                    title={theme.label}
-                    aria-label={theme.label}
-                    style={{ background: theme.swatch }}
-                    onClick={() => onColorThemeChange(theme.id)}
-                  >
-                    <span className="theme-swatch-label">{theme.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="field">
-              <span className="field-label">Pattern</span>
-              <div className="segmented wrap">
-                {PATTERNS.map(({ id, label }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    className={pattern === id ? 'active' : ''}
-                    onClick={() => onPatternChange(id)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      <button
+        type="button"
+        className={`more-options-toggle-btn${moreOpen ? ' active' : ''}`}
+        aria-expanded={moreOpen}
+        onClick={onToggleMore}
+      >
+        <span>More options</span>
+        <span className="chevron-right">{moreOpen ? '◂' : '▸'}</span>
+      </button>
 
       {error && <p className="form-error">{error}</p>}
 
