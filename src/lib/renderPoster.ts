@@ -613,7 +613,13 @@ function wrapText(
   return lines;
 }
 
-/** Centered bottom stack: gold placement, name, level, then competition title. */
+/**
+ * Centered bottom stack matching the reference hierarchy and line spacing:
+ *   1ST PLACE          (gold, small)
+ *   STUDENT NAME       (white, large)  — medium gap above
+ *   ALL ISLAND         (gold)          — tight gap under name
+ *   COMPETITION TITLE  (silver)        — largest gap under level
+ */
 function drawBottomStack(
   ctx: CanvasRenderingContext2D,
   inputs: PosterInputs,
@@ -625,78 +631,90 @@ function drawBottomStack(
   const { name, level, title, placement } = inputs;
   const centerX = w / 2;
   const maxTextWidth = w * layout.textMaxWidthFrac;
+  const s = layout.scale;
 
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
 
-  const titleSize = Math.round(layout.scale * layout.titleSizeFrac);
-  const levelSize = Math.round(layout.scale * layout.titleSizeFrac * 1.05);
-  const titleLineHeight = Math.round(titleSize * 1.4);
-  const levelLineHeight = Math.round(levelSize * 1.35);
+  // --- Measure each layer ---
+  const labelSize = Math.round(s * 0.019);
+  const labelText = PLACEMENT_LABELS[placement].toUpperCase();
 
-  // Competition title (bottom).
+  const displayName = (name.trim() || 'STUDENT NAME').toUpperCase();
+  let nameSize = Math.round(s * layout.nameSizeFrac);
+  ctx.font = `400 ${nameSize}px Anton`;
+  if (ctx.measureText(displayName).width > maxTextWidth) {
+    nameSize = Math.floor((nameSize * maxTextWidth) / ctx.measureText(displayName).width);
+  }
+
+  const levelText = level.trim().toUpperCase();
+  const levelSize = Math.round(s * 0.022);
+
+  const titleSize = Math.round(s * layout.titleSizeFrac);
+  const titleLineHeight = Math.round(titleSize * 1.35);
   ctx.font = `600 ${titleSize}px Archivo`;
-  ctx.letterSpacing = `${Math.round(layout.scale * 0.003)}px`;
   const titleText = title.trim().toUpperCase();
   const titleLines = titleText ? wrapText(ctx, titleText, maxTextWidth, 2) : [];
+  const titleBlockH = titleLines.length > 0 ? (titleLines.length - 1) * titleLineHeight : 0;
 
-  const bottomBaseline = h * layout.bottomBaseline;
-  const titleTopBaseline = bottomBaseline - (titleLines.length - 1) * titleLineHeight;
+  // Line spacing: name↔level tight; level↔title also tight (they're one connected block).
+  const gapPlacementToName = Math.round(nameSize * 0.38);
+  const gapNameToLevel = Math.round(nameSize * 0.22);
+  const gapLevelToTitle = Math.round(nameSize * 0.12);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
-  titleLines.forEach((line, i) => {
-    ctx.fillText(line, centerX, titleTopBaseline + i * titleLineHeight);
-  });
-
-  // Level above the title.
-  const levelText = level.trim().toUpperCase();
-  let levelBaseline = titleLines.length > 0 ? titleTopBaseline - titleLineHeight * 1.15 : bottomBaseline;
-  if (levelText) {
-    ctx.font = `600 ${levelSize}px Archivo`;
-    ctx.letterSpacing = `${Math.round(layout.scale * 0.006)}px`;
-    ctx.fillStyle = theme.accent;
-    ctx.fillText(levelText, centerX, levelBaseline);
-    levelBaseline -= levelLineHeight * 0.15;
+  // Stack height from placement baseline down to last title baseline.
+  const hasLevel = levelText.length > 0;
+  const hasTitle = titleLines.length > 0;
+  let stackH = labelSize + gapPlacementToName + nameSize;
+  if (hasLevel) stackH += gapNameToLevel + levelSize;
+  if (hasTitle) {
+    stackH += (hasLevel ? gapLevelToTitle : gapNameToLevel) + titleBlockH + titleSize;
   }
 
-  const stackTop =
-    levelText
-      ? levelBaseline - levelLineHeight * 0.95
-      : titleLines.length > 0
-        ? titleTopBaseline - titleLineHeight * 1.35
-        : bottomBaseline;
+  // Anchor the whole block near the bottom of the poster.
+  const stackBottom = h * layout.bottomBaseline;
+  const stackTop = stackBottom - stackH;
+  let y = stackTop + labelSize;
 
-  // Student name above level/title.
-  const displayName = (name.trim() || 'STUDENT NAME').toUpperCase();
-  let nameSize = Math.round(layout.scale * layout.nameSizeFrac);
+  // 1) Placement
+  ctx.font = `600 ${labelSize}px Archivo`;
+  ctx.letterSpacing = `${Math.round(s * 0.01)}px`;
+  ctx.fillStyle = theme.accent;
+  ctx.fillText(labelText, centerX, y);
+
+  // 2) Student name
+  y += gapPlacementToName + nameSize;
   ctx.font = `400 ${nameSize}px Anton`;
-  ctx.letterSpacing = `${Math.round(layout.scale * 0.002)}px`;
-  const nameWidth = ctx.measureText(displayName).width;
-  if (nameWidth > maxTextWidth) {
-    nameSize = Math.floor((nameSize * maxTextWidth) / nameWidth);
-    ctx.font = `400 ${nameSize}px Anton`;
-  }
-  const nameBaseline = stackTop - Math.round(layout.scale * 0.008);
-
+  ctx.letterSpacing = `${Math.round(s * 0.002)}px`;
   ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-  ctx.shadowBlur = Math.round(layout.scale * 0.015);
-  ctx.shadowOffsetY = Math.round(layout.scale * 0.004);
+  ctx.shadowBlur = Math.round(s * 0.015);
+  ctx.shadowOffsetY = Math.round(s * 0.004);
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(displayName, centerX, nameBaseline);
+  ctx.fillText(displayName, centerX, y);
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  const labelSize = Math.round(layout.scale * 0.02);
-  ctx.font = `600 ${labelSize}px Archivo`;
-  ctx.letterSpacing = `${Math.round(layout.scale * 0.008)}px`;
-  ctx.fillStyle = theme.accent;
-  ctx.fillText(
-    PLACEMENT_LABELS[placement].toUpperCase(),
-    centerX,
-    nameBaseline - nameSize - Math.round(layout.scale * 0.016),
-  );
+  // 3) Level
+  if (hasLevel) {
+    y += gapNameToLevel + levelSize;
+    ctx.font = `600 ${levelSize}px Archivo`;
+    ctx.letterSpacing = `${Math.round(s * 0.008)}px`;
+    ctx.fillStyle = theme.accent;
+    ctx.fillText(levelText, centerX, y);
+  }
+
+  // 4) Competition title
+  if (hasTitle) {
+    y += (hasLevel ? gapLevelToTitle : gapNameToLevel) + titleSize;
+    ctx.font = `600 ${titleSize}px Archivo`;
+    ctx.letterSpacing = `${Math.round(s * 0.004)}px`;
+    ctx.fillStyle = 'rgba(210, 218, 230, 0.9)';
+    titleLines.forEach((line, i) => {
+      ctx.fillText(line, centerX, y + i * titleLineHeight);
+    });
+  }
 
   ctx.restore();
 }
