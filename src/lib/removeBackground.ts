@@ -1,7 +1,69 @@
-import { removeBackground } from '@imgly/background-removal';
+import { preload, removeBackground, type Config } from '@imgly/background-removal';
 
 let lastFile: File | null = null;
 let lastResult: Promise<ImageBitmap> | null = null;
+let preloadPromise: Promise<void> | null = null;
+
+/** Long-edge cap before inference — large phone photos are the main slowdown. */
+const MAX_INFERENCE_EDGE = 1280;
+
+const REMOVAL_CONFIG: Config = {
+  // Quantized model (~40 MB): faster download + inference than fp16/full.
+  model: 'isnet_quint8',
+  // WebGPU when available (falls back inside the library).
+  device: 'gpu',
+  // Keep the UI thread responsive while ONNX runs.
+  proxyToWorker: true,
+  output: { format: 'image/png' },
+};
+
+/**
+ * Warm the segmentation model as soon as the app loads so the first photo
+ * does not pay the full download + init cost while the user waits.
+ */
+export function preloadCutoutModel(): Promise<void> {
+  if (!preloadPromise) {
+    preloadPromise = preload(REMOVAL_CONFIG).catch(() => {
+      // Allow a later getCutout attempt; clear so preload can retry.
+      preloadPromise = null;
+    });
+  }
+  return preloadPromise ?? Promise.resolve();
+}
+
+/**
+ * Shrinks very large camera photos before segmentation. Quality stays fine for
+ * poster compositing; inference time drops roughly with pixel count.
+ */
+async function prepareForInference(file: File): Promise<Blob | File> {
+  const bitmap = await createImageBitmap(file);
+  const longEdge = Math.max(bitmap.width, bitmap.height);
+  if (longEdge <= MAX_INFERENCE_EDGE) {
+    bitmap.close();
+    return file;
+  }
+
+  const scale = MAX_INFERENCE_EDGE / longEdge;
+  const w = Math.max(1, Math.round(bitmap.width * scale));
+  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    bitmap.close();
+    return file;
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/jpeg', 0.92),
+  );
+  return blob ?? file;
+}
 
 /**
  * Crops away fully transparent margins so the subject fills its bitmap,
@@ -17,12 +79,14 @@ export async function trimTransparent(bitmap: ImageBitmap): Promise<ImageBitmap>
   ctx.drawImage(bitmap, 0, 0);
   const { data, width, height } = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
 
+  // Coarse scan (stride 4) then refine edges — much faster on large cutouts.
+  const stride = 4;
   let minX = width;
   let minY = height;
   let maxX = -1;
   let maxY = -1;
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+  for (let y = 0; y < height; y += stride) {
+    for (let x = 0; x < width; x += stride) {
       if (data[(y * width + x) * 4 + 3] > 8) {
         if (x < minX) minX = x;
         if (x > maxX) maxX = x;
@@ -31,8 +95,30 @@ export async function trimTransparent(bitmap: ImageBitmap): Promise<ImageBitmap>
       }
     }
   }
-  if (maxX < 0) return bitmap; // fully transparent; keep as-is
-  return createImageBitmap(canvas, minX, minY, maxX - minX + 1, maxY - minY + 1);
+  if (maxX < 0) return bitmap;
+
+  minX = Math.max(0, minX - stride);
+  minY = Math.max(0, minY - stride);
+  maxX = Math.min(width - 1, maxX + stride);
+  maxY = Math.min(height - 1, maxY + stride);
+
+  // Refine within the coarse box at full resolution.
+  let rMinX = maxX;
+  let rMinY = maxY;
+  let rMaxX = minX;
+  let rMaxY = minY;
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      if (data[(y * width + x) * 4 + 3] > 8) {
+        if (x < rMinX) rMinX = x;
+        if (x > rMaxX) rMaxX = x;
+        if (y < rMinY) rMinY = y;
+        if (y > rMaxY) rMaxY = y;
+      }
+    }
+  }
+  if (rMaxX < rMinX) return bitmap;
+  return createImageBitmap(canvas, rMinX, rMinY, rMaxX - rMinX + 1, rMaxY - rMinY + 1);
 }
 
 /**
@@ -50,10 +136,10 @@ async function autoAdjust(bitmap: ImageBitmap): Promise<ImageBitmap> {
   const image = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
   const d = image.data;
 
-  // Luminance histogram over visible pixels only.
+  // Sample luminance for the histogram (every 4th pixel) — enough for percentiles.
   const hist = new Uint32Array(256);
   let count = 0;
-  for (let i = 0; i < d.length; i += 4) {
+  for (let i = 0; i < d.length; i += 16) {
     if (d[i + 3] > 16) {
       hist[(0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) | 0]++;
       count++;
@@ -73,10 +159,8 @@ async function autoAdjust(bitmap: ImageBitmap): Promise<ImageBitmap> {
   const lo = percentile(0.02);
   const hi = percentile(0.98);
 
-  // Stretch [lo, hi] to [12, 240], capped so already-contrasty photos barely change.
   const stretch = Math.min((240 - 12) / Math.max(1, hi - lo), 1.5);
-  const strength = 0.65; // blend toward the stretched result to keep it natural
-  // Cool grade: nudge reds down and blues up toward the poster's navy palette.
+  const strength = 0.65;
   const grade = [0.985, 1.0, 1.035];
 
   for (let i = 0; i < d.length; i += 4) {
@@ -97,14 +181,26 @@ async function autoAdjust(bitmap: ImageBitmap): Promise<ImageBitmap> {
  * Removes the background from a photo, returning a transparent cutout
  * trimmed to the subject's bounds and auto-adjusted to match the poster style.
  * The result is cached per file so re-renders don't re-run the model.
- * The first call downloads the segmentation model (~40 MB), so it can take a while.
  */
 export function getCutout(file: File): Promise<ImageBitmap> {
   if (file === lastFile && lastResult) return lastResult;
   lastFile = file;
-  lastResult = removeBackground(file, { output: { format: 'image/png' } })
-    .then((blob) => createImageBitmap(blob))
-    .then(trimTransparent)
-    .then(autoAdjust);
+  lastResult = (async () => {
+    await preloadCutoutModel();
+    const input = await prepareForInference(file);
+    try {
+      const blob = await removeBackground(input, REMOVAL_CONFIG);
+      const bitmap = await createImageBitmap(blob);
+      return autoAdjust(await trimTransparent(bitmap));
+    } catch {
+      // GPU path can fail on some devices — retry once on CPU.
+      const blob = await removeBackground(input, {
+        ...REMOVAL_CONFIG,
+        device: 'cpu',
+      });
+      const bitmap = await createImageBitmap(blob);
+      return autoAdjust(await trimTransparent(bitmap));
+    }
+  })();
   return lastResult;
 }

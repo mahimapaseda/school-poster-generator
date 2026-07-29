@@ -14,7 +14,7 @@ import {
   type SizePreset,
   type TextPosition,
 } from './lib/renderPoster';
-import { getCutout, trimTransparent } from './lib/removeBackground';
+import { getCutout, preloadCutoutModel, trimTransparent } from './lib/removeBackground';
 
 type UiTheme = 'light' | 'dark';
 
@@ -76,6 +76,10 @@ export default function App() {
   useEffect(() => {
     applyUiTheme(uiTheme);
   }, [uiTheme]);
+
+  useEffect(() => {
+    void preloadCutoutModel();
+  }, []);
 
   useEffect(() => {
     if (!photoFile) {
