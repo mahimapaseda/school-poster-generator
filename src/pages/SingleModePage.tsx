@@ -13,6 +13,7 @@ import {
   type PatternId,
   type Placement,
 } from '../lib/renderPoster';
+import { loadDefaultLogo } from '../lib/defaultLogo';
 import { getCutout, preloadCutoutModel, trimTransparent } from '../lib/removeBackground';
 import { applyUiTheme, initialUiTheme, type UiTheme } from '../lib/uiTheme';
 
@@ -53,6 +54,20 @@ export default function SingleModePage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    loadDefaultLogo()
+      .then((bitmap) => {
+        if (!cancelled) setLogo(bitmap);
+      })
+      .catch((err) => {
+        console.warn('[logo] default load failed', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!photoFile) {
       setRawPhoto(null);
       setCutout(null);
@@ -83,7 +98,9 @@ export default function SingleModePage() {
 
   const handleLogoChange = useCallback((file: File | null) => {
     if (!file) {
-      setLogo(null);
+      loadDefaultLogo()
+        .then(setLogo)
+        .catch(() => setLogo(null));
       return;
     }
     createImageBitmap(file).then(trimTransparent).then(setLogo);

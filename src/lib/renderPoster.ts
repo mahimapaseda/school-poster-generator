@@ -385,8 +385,8 @@ export const DEFAULT_LAYOUT_OVERRIDES: LayoutOverrides = {
   logoOpacity: 0.42,
   logoSize: 50,
   photoSize: 50,
-  ordinalSize: 50,
-  nameSize: 50,
+  ordinalSize: 60,
+  nameSize: 60,
   levelSize: 50,
   titleSize: 50,
   textPosition: 50,
@@ -398,7 +398,7 @@ function sliderToScale(v: number): number {
   return 1.0 + ((v - 50) / 50);
 }
 
-function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): RatioLayout {
+export function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): RatioLayout {
   const logoMul = sliderToScale(overrides.logoSize);
   const photoMul = sliderToScale(overrides.photoSize);
   const ordinalMul = sliderToScale(overrides.ordinalSize);
@@ -431,7 +431,7 @@ function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): 
  * Layout knobs per aspect ratio. Logo uses a large contain-fit box so the
  * crest fills the upper poster like the old giant P-mark, scaled per ratio.
  */
-interface RatioLayout {
+export interface RatioLayout {
   /** Geometric-mean scale for text/logo sizes. */
   scale: number;
   /** Max visual width of the large centered logo as a fraction of poster width. */
@@ -464,7 +464,7 @@ interface RatioLayout {
   bottomBaseline: number;
 }
 
-function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): RatioLayout {
+export function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): RatioLayout {
   const scale = Math.sqrt(w * h);
 
   switch (aspectRatio) {
@@ -574,6 +574,7 @@ export function ensureFonts(): Promise<void> {
     fontsReady = Promise.all([
       new FontFace('Anton', 'url(/fonts/anton-400.woff2)', { weight: '400' }).load(),
       new FontFace('Archivo', 'url(/fonts/archivo-600.woff2)', { weight: '600' }).load(),
+      new FontFace('Milker', 'url(/fonts/milker.otf)', { weight: '400' }).load(),
     ]).then((faces) => {
       for (const face of faces) document.fonts.add(face);
     });
@@ -814,7 +815,7 @@ function drawPattern(
   ctx.globalAlpha = 1;
 }
 
-function drawBackground(
+export function drawBackground(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
@@ -953,7 +954,7 @@ function drawSubject(
 }
 
 /** Large school logo — contain-fit inside a per-ratio box, centered on the poster. */
-function drawLogoMark(
+export function drawLogoMark(
   ctx: CanvasRenderingContext2D,
   logo: ImageBitmap | null,
   w: number,
@@ -986,7 +987,7 @@ function drawLogoMark(
   ctx.restore();
 }
 
-function drawBottomFade(
+export function drawBottomFade(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
@@ -1111,7 +1112,7 @@ function drawBottomStack(
   // 2) Level
   if (hasLevel) {
     y += gapNameToLevel + levelSize;
-    ctx.font = `600 ${levelSize}px Archivo`;
+    ctx.font = `400 ${levelSize}px Milker`;
     ctx.letterSpacing = `${Math.round(s * 0.008)}px`;
     ctx.fillStyle = theme.accent;
     ctx.strokeStyle = theme.accent;

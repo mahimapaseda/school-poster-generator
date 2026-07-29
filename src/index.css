@@ -14,6 +14,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Milker';
+  src: url('/fonts/milker.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1311,4 +1319,25 @@ input[type='text']::placeholder {
 
 .mode-placeholder-single:hover {
   box-shadow: 0 4px 18px var(--accent-glow);
+}
+
+/* ─── Multiple Mode person sections ─── */
+
+.person-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.person-section-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
 }

@@ -16,7 +16,7 @@ Open the printed URL (default http://localhost:5173). The app opens on the **Hom
 ## Modes
 
 - **Single Mode** (`/single`) — create one poster for one student (current full editor).
-- **Multiple Mode** (`/multiple`) — placeholder for upcoming batch generation.
+- **Multiple Mode** (`/multiple`) — Race-style poster for **2–8 people** on one image (choose person count, side-by-side cutouts, stacked **1st–8th** boxes, shared title/level).
 
 ## Usage (Single Mode)
 
@@ -30,6 +30,15 @@ Open the printed URL (default http://localhost:5173). The app opens on the **Hom
 8. Click **Download poster (PNG)** — the exported file is named `poster-<name>-P<n>-<ratio>.png`.
 
 Use **Home** in the sidebar (or mobile toolbar) to return to mode selection.
+
+## Usage (Multiple Mode)
+
+1. From Home, choose **Multiple Mode**.
+2. Set **Person count** (2–8).
+3. Set shared **Title**, **Level / subtitle**, and optional event logo.
+4. For each person: upload a photo, enter the name, and pick placement (**1st–8th**).
+5. Open **More options** for ratio, theme, pattern, and size sliders (same as Single Mode).
+6. Download the Race-style PNG (`poster-multi-<title>-<N>p-<ratio>.png`).
 
 ## Build
 

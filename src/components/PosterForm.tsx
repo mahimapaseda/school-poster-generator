@@ -1,4 +1,5 @@
 import { useCallback, useState, type DragEvent, type ChangeEvent } from 'react';
+import { DEFAULT_LOGO_LABEL } from '../lib/defaultLogo';
 import type { Placement } from '../lib/renderPoster';
 
 interface PosterFormProps {
@@ -63,7 +64,7 @@ export function PosterForm({
 }: PosterFormProps) {
   const [dragging, setDragging] = useState(false);
   const [photoLabel, setPhotoLabel] = useState<string | null>(null);
-  const [logoLabel, setLogoLabel] = useState<string | null>(null);
+  const [logoLabel, setLogoLabel] = useState<string | null>(DEFAULT_LOGO_LABEL);
 
   const acceptPhoto = useCallback(
     (file: File | undefined) => {
@@ -93,7 +94,7 @@ export function PosterForm({
   const handleLogoInput = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0] ?? null;
-      setLogoLabel(file?.name ?? null);
+      setLogoLabel(file?.name ?? DEFAULT_LOGO_LABEL);
       onLogoChange(file);
     },
     [onLogoChange],
