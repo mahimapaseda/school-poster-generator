@@ -2,13 +2,9 @@ import {
   ASPECT_RATIOS,
   COLOR_THEMES,
   PATTERNS,
-  SIZE_PRESETS,
-  TEXT_POSITIONS,
   type AspectRatioId,
   type ColorThemeId,
   type PatternId,
-  type SizePreset,
-  type TextPosition,
 } from '../lib/renderPoster';
 
 interface MoreOptionsPanelProps {
@@ -17,46 +13,66 @@ interface MoreOptionsPanelProps {
   colorTheme: ColorThemeId;
   pattern: PatternId;
   logoOpacity: number;
-  logoSize: SizePreset;
-  photoSize: SizePreset;
-  ordinalSize: SizePreset;
-  nameSize: SizePreset;
-  levelSize: SizePreset;
-  titleSize: SizePreset;
-  textPosition: TextPosition;
+  logoSize: number;
+  photoSize: number;
+  ordinalSize: number;
+  nameSize: number;
+  levelSize: number;
+  titleSize: number;
+  textPosition: number;
   onClose: () => void;
   onAspectRatioChange: (aspectRatio: AspectRatioId) => void;
   onColorThemeChange: (theme: ColorThemeId) => void;
   onPatternChange: (pattern: PatternId) => void;
   onLogoOpacityChange: (opacity: number) => void;
-  onLogoSizeChange: (size: SizePreset) => void;
-  onPhotoSizeChange: (size: SizePreset) => void;
-  onOrdinalSizeChange: (size: SizePreset) => void;
-  onNameSizeChange: (size: SizePreset) => void;
-  onLevelSizeChange: (size: SizePreset) => void;
-  onTitleSizeChange: (size: SizePreset) => void;
-  onTextPositionChange: (position: TextPosition) => void;
+  onLogoSizeChange: (v: number) => void;
+  onPhotoSizeChange: (v: number) => void;
+  onOrdinalSizeChange: (v: number) => void;
+  onNameSizeChange: (v: number) => void;
+  onLevelSizeChange: (v: number) => void;
+  onTitleSizeChange: (v: number) => void;
+  onTextPositionChange: (v: number) => void;
 }
 
-function SizeSegmented({
+function AdjustSlider({
+  label,
   value,
   onChange,
+  min = 0,
+  max = 100,
+  leftHint,
+  rightHint,
 }: {
-  value: SizePreset;
-  onChange: (size: SizePreset) => void;
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+  leftHint?: string;
+  rightHint?: string;
 }) {
   return (
-    <div className="segmented">
-      {SIZE_PRESETS.map(({ id, label }) => (
-        <button
-          key={id}
-          type="button"
-          className={value === id ? 'active' : ''}
-          onClick={() => onChange(id)}
-        >
-          {label}
-        </button>
-      ))}
+    <div className="field">
+      <div className="field-label-row">
+        <span className="field-label">{label}</span>
+        <span className="field-value">{value}%</span>
+      </div>
+      <input
+        className="range-input"
+        type="range"
+        min={min}
+        max={max}
+        step={1}
+        value={value}
+        aria-label={label}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+      {(leftHint || rightHint) && (
+        <div className="range-hints">
+          <span>{leftHint}</span>
+          <span>{rightHint}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -169,54 +185,13 @@ export function MoreOptionsPanel({
           />
         </div>
 
-        <div className="field-row compact">
-          <div className="field">
-            <span className="field-label">Logo size</span>
-            <SizeSegmented value={logoSize} onChange={onLogoSizeChange} />
-          </div>
-          <div className="field">
-            <span className="field-label">Photo size</span>
-            <SizeSegmented value={photoSize} onChange={onPhotoSizeChange} />
-          </div>
-        </div>
-
-        <div className="field-row compact">
-          <div className="field">
-            <span className="field-label">Ordinal size</span>
-            <SizeSegmented value={ordinalSize} onChange={onOrdinalSizeChange} />
-          </div>
-          <div className="field">
-            <span className="field-label">Name size</span>
-            <SizeSegmented value={nameSize} onChange={onNameSizeChange} />
-          </div>
-        </div>
-
-        <div className="field-row compact">
-          <div className="field">
-            <span className="field-label">Level size</span>
-            <SizeSegmented value={levelSize} onChange={onLevelSizeChange} />
-          </div>
-          <div className="field">
-            <span className="field-label">Title size</span>
-            <SizeSegmented value={titleSize} onChange={onTitleSizeChange} />
-          </div>
-        </div>
-
-        <div className="field">
-          <span className="field-label">Text position</span>
-          <div className="segmented">
-            {TEXT_POSITIONS.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                className={textPosition === id ? 'active' : ''}
-                onClick={() => onTextPositionChange(id)}
-              >
-                {label === 'Default' ? 'Mid' : label === 'Higher' ? 'Up' : 'Down'}
-              </button>
-            ))}
-          </div>
-        </div>
+        <AdjustSlider label="Logo size" value={logoSize} onChange={onLogoSizeChange} leftHint="Small" rightHint="Large" />
+        <AdjustSlider label="Photo size" value={photoSize} onChange={onPhotoSizeChange} leftHint="Small" rightHint="Large" />
+        <AdjustSlider label="Ordinal size" value={ordinalSize} onChange={onOrdinalSizeChange} leftHint="Small" rightHint="Large" />
+        <AdjustSlider label="Name size" value={nameSize} onChange={onNameSizeChange} leftHint="Small" rightHint="Large" />
+        <AdjustSlider label="Level size" value={levelSize} onChange={onLevelSizeChange} leftHint="Small" rightHint="Large" />
+        <AdjustSlider label="Title size" value={titleSize} onChange={onTitleSizeChange} leftHint="Small" rightHint="Large" />
+        <AdjustSlider label="Text position" value={textPosition} onChange={onTextPositionChange} leftHint="Up" rightHint="Down" />
       </div>
     </aside>
   );

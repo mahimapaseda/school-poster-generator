@@ -363,61 +363,53 @@ export function getColorTheme(id: ColorThemeId): ColorTheme {
   return COLOR_THEMES.find((t) => t.id === id) ?? COLOR_THEMES[0];
 }
 
-export type SizePreset = 'S' | 'M' | 'L';
-export type TextPosition = 'higher' | 'default' | 'lower';
-
-export const SIZE_PRESETS: Array<{ id: SizePreset; label: string }> = [
-  { id: 'S', label: 'S' },
-  { id: 'M', label: 'M' },
-  { id: 'L', label: 'L' },
-];
-
-export const TEXT_POSITIONS: Array<{ id: TextPosition; label: string }> = [
-  { id: 'higher', label: 'Higher' },
-  { id: 'default', label: 'Default' },
-  { id: 'lower', label: 'Lower' },
-];
+/**
+ * Continuous adjustment values (0–100 sliders).
+ * 50 = default (1× multiplier). 0 → 0.5×, 100 → 1.5×.
+ * textPosition: 0 = highest, 50 = default, 100 = lowest.
+ */
 
 /** User adjustments from More options; applied on top of per-ratio defaults. */
 export interface LayoutOverrides {
   logoOpacity: number;
-  logoSize: SizePreset;
-  photoSize: SizePreset;
-  ordinalSize: SizePreset;
-  nameSize: SizePreset;
-  levelSize: SizePreset;
-  titleSize: SizePreset;
-  textPosition: TextPosition;
+  logoSize: number;
+  photoSize: number;
+  ordinalSize: number;
+  nameSize: number;
+  levelSize: number;
+  titleSize: number;
+  textPosition: number;
 }
 
 export const DEFAULT_LAYOUT_OVERRIDES: LayoutOverrides = {
   logoOpacity: 0.42,
-  logoSize: 'M',
-  photoSize: 'M',
-  ordinalSize: 'M',
-  nameSize: 'M',
-  levelSize: 'M',
-  titleSize: 'M',
-  textPosition: 'default',
+  logoSize: 50,
+  photoSize: 50,
+  ordinalSize: 50,
+  nameSize: 50,
+  levelSize: 50,
+  titleSize: 50,
+  textPosition: 50,
 };
 
-const SIZE_SCALE: Record<SizePreset, number> = {
-  S: 0.78,
-  M: 1,
-  L: 1.22,
-};
+/** Map a 0-100 slider value to a multiplier (0→0.5, 50→1.0, 100→1.5). */
+function sliderToScale(v: number): number {
+  return 0.5 + (v / 100);
+}
 
 function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): RatioLayout {
-  const logoMul = SIZE_SCALE[overrides.logoSize];
-  const photoMul = SIZE_SCALE[overrides.photoSize];
-  const ordinalMul = SIZE_SCALE[overrides.ordinalSize];
-  const nameMul = SIZE_SCALE[overrides.nameSize];
-  const levelMul = SIZE_SCALE[overrides.levelSize];
-  const titleMul = SIZE_SCALE[overrides.titleSize];
+  const logoMul = sliderToScale(overrides.logoSize);
+  const photoMul = sliderToScale(overrides.photoSize);
+  const ordinalMul = sliderToScale(overrides.ordinalSize);
+  const nameMul = sliderToScale(overrides.nameSize);
+  const levelMul = sliderToScale(overrides.levelSize);
+  const titleMul = sliderToScale(overrides.titleSize);
 
+  // textPosition: 0→move up 0.04, 50→no change, 100→move down 0.03
+  const posT = (overrides.textPosition - 50) / 50;
   let bottomBaseline = layout.bottomBaseline;
-  if (overrides.textPosition === 'higher') bottomBaseline = Math.max(0.86, bottomBaseline - 0.04);
-  if (overrides.textPosition === 'lower') bottomBaseline = Math.min(0.975, bottomBaseline + 0.03);
+  if (posT < 0) bottomBaseline = Math.max(0.86, bottomBaseline + posT * 0.04);
+  if (posT > 0) bottomBaseline = Math.min(0.975, bottomBaseline + posT * 0.03);
 
   return {
     ...layout,

@@ -11,8 +11,6 @@ import {
   type ColorThemeId,
   type PatternId,
   type Placement,
-  type SizePreset,
-  type TextPosition,
 } from './lib/renderPoster';
 import { getCutout, preloadCutoutModel, trimTransparent } from './lib/removeBackground';
 
@@ -57,16 +55,15 @@ export default function App() {
   const [colorTheme, setColorTheme] = useState<ColorThemeId>('navy');
   const [pattern, setPattern] = useState<PatternId>('pixels');
   const [logoOpacity, setLogoOpacity] = useState(DEFAULT_LAYOUT_OVERRIDES.logoOpacity);
-  const [logoSize, setLogoSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.logoSize);
-  const [photoSize, setPhotoSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.photoSize);
-  const [ordinalSize, setOrdinalSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.ordinalSize);
-  const [nameSize, setNameSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.nameSize);
-  const [levelSize, setLevelSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.levelSize);
-  const [titleSize, setTitleSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.titleSize);
-  const [textPosition, setTextPosition] = useState<TextPosition>(
-    DEFAULT_LAYOUT_OVERRIDES.textPosition,
-  );
+  const [logoSize, setLogoSize] = useState(DEFAULT_LAYOUT_OVERRIDES.logoSize);
+  const [photoSize, setPhotoSize] = useState(DEFAULT_LAYOUT_OVERRIDES.photoSize);
+  const [ordinalSize, setOrdinalSize] = useState(DEFAULT_LAYOUT_OVERRIDES.ordinalSize);
+  const [nameSize, setNameSize] = useState(DEFAULT_LAYOUT_OVERRIDES.nameSize);
+  const [levelSize, setLevelSize] = useState(DEFAULT_LAYOUT_OVERRIDES.levelSize);
+  const [titleSize, setTitleSize] = useState(DEFAULT_LAYOUT_OVERRIDES.titleSize);
+  const [textPosition, setTextPosition] = useState(DEFAULT_LAYOUT_OVERRIDES.textPosition);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uiTheme, setUiTheme] = useState<UiTheme>(() => {
     if (typeof document !== 'undefined') {
@@ -196,7 +193,58 @@ export default function App() {
 
   return (
     <div className={`app${moreOpen ? ' more-open' : ''}`}>
-      <aside className="panel">
+      {/* Mobile toolbar — visible only on <=900px via CSS */}
+      <div className="mobile-toolbar">
+        <button
+          type="button"
+          className="hamburger-btn"
+          aria-label="Open menu"
+          onClick={() => setMenuOpen(true)}
+        >
+          <span className="hamburger-line" />
+          <span className="hamburger-line" />
+          <span className="hamburger-line" />
+        </button>
+        <span className="mobile-toolbar-title">Poster Generator</span>
+        <div className="mobile-toolbar-actions">
+          <div className="theme-toggle compact" role="group" aria-label="Color mode">
+            <button
+              type="button"
+              className={`theme-toggle-option${uiTheme === 'light' ? ' active' : ''}`}
+              aria-label="Light mode"
+              aria-pressed={uiTheme === 'light'}
+              onClick={() => setUiTheme('light')}
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              className={`theme-toggle-option${uiTheme === 'dark' ? ' active' : ''}`}
+              aria-label="Dark mode"
+              aria-pressed={uiTheme === 'dark'}
+              onClick={() => setUiTheme('dark')}
+            >
+              Dark
+            </button>
+          </div>
+          <button
+            type="button"
+            className="mobile-download-btn"
+            disabled={!photoFile || processing}
+            aria-label="Download poster"
+            onClick={handleDownload}
+          >
+            ↓
+          </button>
+        </div>
+      </div>
+
+      {/* Backdrop for mobile drawer */}
+      {menuOpen && (
+        <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+      )}
+
+      <aside className={`panel${menuOpen ? ' menu-open' : ''}`}>
         <header className="panel-header">
           <div className="panel-header-text">
             <h1>Result Poster Generator</h1>
@@ -204,6 +252,14 @@ export default function App() {
           </div>
           <div className="panel-header-actions">
             <InstallAppButton />
+            <button
+              type="button"
+              className="drawer-close-btn"
+              aria-label="Close menu"
+              onClick={() => setMenuOpen(false)}
+            >
+              ×
+            </button>
             <div className="theme-toggle" role="group" aria-label="Color mode">
               <button
                 type="button"
