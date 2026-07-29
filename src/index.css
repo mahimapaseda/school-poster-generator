@@ -79,6 +79,7 @@ body {
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
+  position: relative;
   background:
     radial-gradient(ellipse 70% 55% at 72% 40%, var(--bg-glow), transparent 70%),
     var(--bg);
@@ -672,17 +673,17 @@ input[type='text']:focus {
   html,
   body,
   #root {
-    overflow: auto;
+    overflow: hidden;
   }
 
   .app,
   .app.more-open {
     display: flex;
     flex-direction: column;
-    height: auto;
-    max-height: none;
+    height: 100dvh;
+    max-height: 100dvh;
     min-height: 100dvh;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .panel {
@@ -694,19 +695,28 @@ input[type='text']:focus {
 
   .form,
   .form-fields {
-    overflow: visible;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .more-panel {
-    position: static;
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--panel-border);
+    border-bottom: none;
+    z-index: 10;
+  }
+
+  .more-panel-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .preview {
-    min-height: 60vh;
-    height: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
   }
 }
