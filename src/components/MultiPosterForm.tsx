@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ChangeEvent, type DragEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { DEFAULT_LOGO_LABEL } from '../lib/defaultLogo';
 import {
   MULTI_PLACEMENTS,
@@ -15,6 +15,18 @@ export interface PersonSlotReport extends MultiPersonInputs {
   processing: boolean;
   error: string | null;
   photoLabel: string | null;
+  /** Original photo file when available (for library save). */
+  photoFile: File | null;
+  cutout: ImageBitmap | null;
+}
+
+/** Initial values when opening a saved Multiple Mode poster. */
+export interface PersonSlotSeed {
+  name: string;
+  placement: MultiPlacement;
+  photoFile: File | null;
+  photoLabel: string | null;
+  cutoutBlob: Blob | null;
 }
 
 interface MultiPosterFormProps {
@@ -26,12 +38,18 @@ interface MultiPosterFormProps {
   hasPhotos: boolean;
   processing: boolean;
   error: string | null;
+  saving?: boolean;
+  saveLabel?: string | null;
+  /** Remount key when loading a library item. */
+  slotsKey?: string;
+  slotSeeds?: PersonSlotSeed[] | null;
   onLogoChange: (file: File | null) => void;
   onTitleChange: (title: string) => void;
   onLevelChange: (level: string) => void;
   onPersonReport: (index: number, report: PersonSlotReport) => void;
   onToggleMore: () => void;
   onDownload: () => void;
+  onSave: () => void;
 }
 
 const LEVEL_PRESETS = [
@@ -103,22 +121,28 @@ function PersonPhotoDropzone({
 function PersonSlotEditor({
   index,
   defaultPlacement,
+  seed,
   onReport,
 }: {
   index: number;
   defaultPlacement: MultiPlacement;
+  seed?: PersonSlotSeed | null;
   onReport: (index: number, report: PersonSlotReport) => void;
 }) {
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoLabel, setPhotoLabel] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(seed?.photoFile ?? null);
+  const [photoLabel, setPhotoLabel] = useState<string | null>(seed?.photoLabel ?? null);
   const [rawPhoto, setRawPhoto] = useState<ImageBitmap | null>(null);
   const [cutout, setCutout] = useState<ImageBitmap | null>(null);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [name, setName] = useState('');
-  const [placement, setPlacement] = useState<MultiPlacement>(defaultPlacement);
+  const [name, setName] = useState(seed?.name ?? '');
+  const [placement, setPlacement] = useState<MultiPlacement>(seed?.placement ?? defaultPlacement);
+  const skipCutoutRef = useRef(Boolean(seed?.cutoutBlob));
+  const seedCutoutRef = useRef(seed?.cutoutBlob ?? null);
 
   const handlePhotoChange = useCallback((file: File | null) => {
+    skipCutoutRef.current = false;
+    seedCutoutRef.current = null;
     setPhotoFile(file);
     setPhotoLabel(file?.name ?? null);
   }, []);
@@ -133,11 +157,32 @@ function PersonSlotEditor({
     }
     let cancelled = false;
     setError(null);
-    setCutout(null);
     setProcessing(true);
+
     createImageBitmap(photoFile).then((bitmap) => {
       if (!cancelled) setRawPhoto(bitmap);
     });
+
+    if (skipCutoutRef.current && seedCutoutRef.current) {
+      skipCutoutRef.current = false;
+      const blob = seedCutoutRef.current;
+      seedCutoutRef.current = null;
+      createImageBitmap(blob)
+        .then((bitmap) => {
+          if (!cancelled) setCutout(bitmap);
+        })
+        .catch(() => {
+          if (!cancelled) setError('Could not restore cutout — reprocessing.');
+        })
+        .finally(() => {
+          if (!cancelled) setProcessing(false);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setCutout(null);
     getCutout(photoFile)
       .then((bitmap) => {
         if (!cancelled) setCutout(bitmap);
@@ -164,6 +209,8 @@ function PersonSlotEditor({
       processing,
       error,
       photoLabel,
+      photoFile,
+      cutout,
     });
   }, [
     index,
@@ -230,12 +277,17 @@ export function MultiPosterForm({
   hasPhotos,
   processing,
   error,
+  saving = false,
+  saveLabel = null,
+  slotsKey = 'new',
+  slotSeeds = null,
   onLogoChange,
   onTitleChange,
   onLevelChange,
   onPersonReport,
   onToggleMore,
   onDownload,
+  onSave,
 }: MultiPosterFormProps) {
   const [logoLabel, setLogoLabel] = useState<string | null>(DEFAULT_LOGO_LABEL);
 
@@ -327,12 +379,13 @@ export function MultiPosterForm({
         </div>
 
         {Array.from({ length: personCount }, (_, index) => {
-          const defaultPlacement = (Math.min(8, index + 1) as MultiPlacement);
+          const defaultPlacement = Math.min(8, index + 1) as MultiPlacement;
           return (
             <PersonSlotEditor
-              key={`person-slot-${index}`}
+              key={`${slotsKey}-person-${index}`}
               index={index}
               defaultPlacement={defaultPlacement}
+              seed={slotSeeds?.[index] ?? null}
               onReport={handlePersonReport}
             />
           );
@@ -351,15 +404,26 @@ export function MultiPosterForm({
         </button>
 
         {error && <p className="form-error">{error}</p>}
+        {saveLabel && <p className="form-save-status">{saveLabel}</p>}
 
-        <button
-          type="button"
-          className="download-button"
-          disabled={!hasPhotos || processing}
-          onClick={onDownload}
-        >
-          {processing ? 'Processing photos…' : 'Download poster (PNG)'}
-        </button>
+        <div className="form-action-row">
+          <button
+            type="button"
+            className="save-button"
+            disabled={!hasPhotos || processing || saving}
+            onClick={onSave}
+          >
+            {saving ? 'Saving…' : 'Save to Library'}
+          </button>
+          <button
+            type="button"
+            className="download-button"
+            disabled={!hasPhotos || processing}
+            onClick={onDownload}
+          >
+            {processing ? 'Processing photos…' : 'Download poster (PNG)'}
+          </button>
+        </div>
       </div>
     </div>
   );
