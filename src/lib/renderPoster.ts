@@ -17,7 +17,20 @@ export type ColorThemeId =
   | 'midnight'
   | 'maroon';
 
-export type PatternId = 'pixels' | 'dots' | 'lines' | 'grid' | 'none';
+export type PatternId =
+  | 'pixels'
+  | 'dots'
+  | 'lines'
+  | 'grid'
+  | 'diagonal'
+  | 'crosshatch'
+  | 'rings'
+  | 'stars'
+  | 'diamonds'
+  | 'waves'
+  | 'chevron'
+  | 'confetti'
+  | 'none';
 
 export interface AspectRatioOption {
   id: AspectRatioId;
@@ -199,6 +212,14 @@ export const PATTERNS: PatternOption[] = [
   { id: 'dots', label: 'Dots' },
   { id: 'lines', label: 'Lines' },
   { id: 'grid', label: 'Grid' },
+  { id: 'diagonal', label: 'Diagonal' },
+  { id: 'crosshatch', label: 'Hatch' },
+  { id: 'rings', label: 'Rings' },
+  { id: 'stars', label: 'Stars' },
+  { id: 'diamonds', label: 'Diamonds' },
+  { id: 'waves', label: 'Waves' },
+  { id: 'chevron', label: 'Chevron' },
+  { id: 'confetti', label: 'Confetti' },
   { id: 'none', label: 'None' },
 ];
 
@@ -443,6 +464,7 @@ function drawPattern(
 
   const area = (w * h) / (2048 * 2560);
   const rand = mulberry32(20260728);
+  const pick = () => palette[Math.floor(rand() * palette.length)];
 
   if (pattern === 'grid') {
     ctx.strokeStyle = palette[1] ?? palette[0];
@@ -471,8 +493,163 @@ function drawPattern(
       const y = rand() * h;
       const thickness = 2 + rand() * 10;
       ctx.globalAlpha = 0.12 + rand() * 0.22;
-      ctx.fillStyle = palette[Math.floor(rand() * palette.length)];
+      ctx.fillStyle = pick();
       ctx.fillRect(0, y, w, thickness);
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (pattern === 'diagonal') {
+    ctx.lineWidth = 2;
+    const step = Math.round(Math.min(w, h) * 0.035);
+    for (let i = -h; i < w + h; i += step) {
+      ctx.globalAlpha = 0.1 + (i % (step * 3) === 0 ? 0.1 : 0);
+      ctx.strokeStyle = pick();
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + h, h);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (pattern === 'crosshatch') {
+    ctx.lineWidth = 1.5;
+    const step = Math.round(Math.min(w, h) * 0.038);
+    ctx.globalAlpha = 0.14;
+    ctx.strokeStyle = palette[1] ?? palette[0];
+    for (let i = -h; i < w + h; i += step) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + h, h);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(i, h);
+      ctx.lineTo(i + h, 0);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (pattern === 'rings') {
+    const count = Math.round(18 * area);
+    for (let i = 0; i < count; i++) {
+      const x = rand() * w;
+      const y = h * (0.08 + 0.85 * rand());
+      const r = 20 + rand() * Math.min(w, h) * 0.12;
+      ctx.globalAlpha = 0.1 + rand() * 0.18;
+      ctx.strokeStyle = pick();
+      ctx.lineWidth = 2 + rand() * 4;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (pattern === 'stars') {
+    const count = Math.round(120 * area);
+    for (let i = 0; i < count; i++) {
+      const x = rand() * w;
+      const y = h * (0.05 + 0.9 * Math.pow(rand(), 0.7));
+      const size = 4 + rand() * (rand() < 0.15 ? 18 : 10);
+      ctx.globalAlpha = 0.15 + rand() * 0.35;
+      ctx.fillStyle = pick();
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rand() * Math.PI);
+      ctx.beginPath();
+      for (let p = 0; p < 4; p++) {
+        const a = (p * Math.PI) / 2;
+        ctx.lineTo(Math.cos(a) * size, Math.sin(a) * size * 0.25);
+        ctx.lineTo(Math.cos(a + Math.PI / 4) * size * 0.28, Math.sin(a + Math.PI / 4) * size * 0.28);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (pattern === 'diamonds') {
+    const count = Math.round(140 * area);
+    for (let i = 0; i < count; i++) {
+      const x = rand() * w;
+      const y = h * (0.05 + 0.9 * Math.pow(rand(), 0.65));
+      const size = 6 + rand() * (rand() < 0.12 ? 36 : 16);
+      ctx.globalAlpha = 0.12 + rand() * 0.28;
+      ctx.fillStyle = pick();
+      ctx.beginPath();
+      ctx.moveTo(x, y - size);
+      ctx.lineTo(x + size * 0.7, y);
+      ctx.lineTo(x, y + size);
+      ctx.lineTo(x - size * 0.7, y);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (pattern === 'waves') {
+    const rows = Math.round(28 * Math.sqrt(area));
+    ctx.lineWidth = 2;
+    for (let r = 0; r < rows; r++) {
+      const yBase = ((r + 0.5) / rows) * h;
+      const amp = 8 + rand() * 22;
+      const freq = 0.008 + rand() * 0.01;
+      const phase = rand() * Math.PI * 2;
+      ctx.globalAlpha = 0.1 + rand() * 0.16;
+      ctx.strokeStyle = pick();
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 8) {
+        const y = yBase + Math.sin(x * freq + phase) * amp;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (pattern === 'chevron') {
+    const step = Math.round(Math.min(w, h) * 0.045);
+    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 0.16;
+    ctx.strokeStyle = palette[1] ?? palette[0];
+    for (let y = -step; y < h + step; y += step) {
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += step) {
+        const yy = y + ((Math.floor(x / step) % 2) * step) / 2;
+        if (x === 0) ctx.moveTo(x, yy);
+        else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  if (pattern === 'confetti') {
+    const count = Math.round(220 * area);
+    for (let i = 0; i < count; i++) {
+      const x = rand() * w;
+      const y = h * (0.04 + 0.92 * rand());
+      const rw = 4 + rand() * 14;
+      const rh = 3 + rand() * 8;
+      ctx.globalAlpha = 0.18 + rand() * 0.32;
+      ctx.fillStyle = pick();
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rand() * Math.PI);
+      ctx.fillRect(-rw / 2, -rh / 2, rw, rh);
+      ctx.restore();
     }
     ctx.globalAlpha = 1;
     return;
@@ -485,7 +662,7 @@ function drawPattern(
     const size = 8 + rand() * (rand() < 0.12 ? 70 : 34);
     const nearTopCenter = y < h * 0.45 && Math.abs(x - w / 2) < w * 0.3;
     ctx.globalAlpha = (nearTopCenter ? 0.1 : 0.2) + rand() * 0.3;
-    ctx.fillStyle = palette[Math.floor(rand() * palette.length)];
+    ctx.fillStyle = pick();
     if (pattern === 'dots') {
       ctx.beginPath();
       ctx.arc(x, y, size / 2, 0, Math.PI * 2);
