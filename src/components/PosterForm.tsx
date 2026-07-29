@@ -21,9 +21,9 @@ interface PosterFormProps {
 }
 
 const PLACEMENTS: Array<{ value: Placement; label: string }> = [
-  { value: 1, label: '1st Place' },
-  { value: 2, label: '2nd Place' },
-  { value: 3, label: '3rd Place' },
+  { value: 1, label: '1st' },
+  { value: 2, label: '2nd' },
+  { value: 3, label: '3rd' },
 ];
 
 const LEVEL_PRESETS = [
@@ -97,129 +97,132 @@ export function PosterForm({
 
   return (
     <div className="form">
-      <div className="field">
-        <span className="field-label">Student photo</span>
-        <label
-          className={`dropzone${dragging ? ' dragging' : ''}`}
-          onDragOver={(event) => {
-            event.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
+      <div className="form-fields">
+        <div className="field">
+          <span className="field-label">Student photo</span>
+          <label
+            className={`dropzone${dragging ? ' dragging' : ''}`}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+          >
+            <input type="file" accept="image/*" onChange={handlePhotoInput} hidden />
+            {photoLabel ? (
+              <span className="dropzone-file">{photoLabel}</span>
+            ) : (
+              <span>Drop photo or click to browse</span>
+            )}
+          </label>
+        </div>
+
+        <div className="field">
+          <span className="field-label">Placement</span>
+          <div className="segmented">
+            {PLACEMENTS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                className={placement === value ? 'active' : ''}
+                onClick={() => onPlacementChange(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="competition-level">
+            Level
+          </label>
+          <input
+            id="competition-level"
+            type="text"
+            value={level}
+            list="level-presets"
+            placeholder="e.g. All Island"
+            onChange={(event) => onLevelChange(event.target.value)}
+          />
+          <datalist id="level-presets">
+            {LEVEL_PRESETS.map((preset) => (
+              <option key={preset} value={preset} />
+            ))}
+          </datalist>
+          <div className="chip-row">
+            {LEVEL_PRESETS.slice(0, 3).map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                className={`chip${level === preset ? ' active' : ''}`}
+                onClick={() => onLevelChange(preset)}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="competition-title">
+            Title
+          </label>
+          <input
+            id="competition-title"
+            type="text"
+            value={title}
+            placeholder="e.g. Innovation & Robotic Competition"
+            onChange={(event) => onTitleChange(event.target.value)}
+          />
+        </div>
+
+        <div className="field-row">
+          <div className="field">
+            <span className="field-label">School logo</span>
+            <label className="file-button">
+              <input type="file" accept="image/*" onChange={handleLogoInput} hidden />
+              {logoLabel ?? 'Choose logo'}
+            </label>
+          </div>
+          <div className="field">
+            <label className="field-label" htmlFor="student-name">
+              Student name
+            </label>
+            <input
+              id="student-name"
+              type="text"
+              value={name}
+              placeholder="Full name"
+              onChange={(event) => onNameChange(event.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="form-actions">
+        <button
+          type="button"
+          className={`more-options-toggle-btn${moreOpen ? ' active' : ''}`}
+          aria-expanded={moreOpen}
+          onClick={onToggleMore}
         >
-          <input type="file" accept="image/*" onChange={handlePhotoInput} hidden />
-          {photoLabel ? (
-            <span className="dropzone-file">{photoLabel}</span>
-          ) : (
-            <span>Drag a photo here or click to browse</span>
-          )}
-        </label>
-        <span className="field-hint">Background removal and color adjustment are automatic.</span>
+          <span>More options</span>
+          <span className="chevron-right">{moreOpen ? '◂' : '▸'}</span>
+        </button>
+
+        {error && <p className="form-error">{error}</p>}
+
+        <button
+          type="button"
+          className="download-button"
+          disabled={!hasPhoto || processing}
+          onClick={onDownload}
+        >
+          {processing ? 'Processing photo…' : 'Download poster (PNG)'}
+        </button>
       </div>
-
-      <div className="field">
-        <span className="field-label">Placement</span>
-        <div className="segmented">
-          {PLACEMENTS.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              className={placement === value ? 'active' : ''}
-              onClick={() => onPlacementChange(value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="field">
-        <label className="field-label" htmlFor="competition-level">
-          Level
-        </label>
-        <input
-          id="competition-level"
-          type="text"
-          value={level}
-          list="level-presets"
-          placeholder="e.g. All Island, Central Province"
-          onChange={(event) => onLevelChange(event.target.value)}
-        />
-        <datalist id="level-presets">
-          {LEVEL_PRESETS.map((preset) => (
-            <option key={preset} value={preset} />
-          ))}
-        </datalist>
-        <div className="chip-row">
-          {LEVEL_PRESETS.slice(0, 4).map((preset) => (
-            <button
-              key={preset}
-              type="button"
-              className={`chip${level === preset ? ' active' : ''}`}
-              onClick={() => onLevelChange(preset)}
-            >
-              {preset}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="field">
-        <label className="field-label" htmlFor="competition-title">
-          Title
-        </label>
-        <input
-          id="competition-title"
-          type="text"
-          value={title}
-          placeholder="e.g. Innovation & Robotic Competition"
-          onChange={(event) => onTitleChange(event.target.value)}
-        />
-      </div>
-
-      <div className="field">
-        <span className="field-label">School logo</span>
-        <label className="file-button">
-          <input type="file" accept="image/*" onChange={handleLogoInput} hidden />
-          {logoLabel ?? 'Choose logo image'}
-        </label>
-        <span className="field-hint">Shown large behind the student. Transparent PNG works best.</span>
-      </div>
-
-      <div className="field">
-        <label className="field-label" htmlFor="student-name">
-          Student name
-        </label>
-        <input
-          id="student-name"
-          type="text"
-          value={name}
-          placeholder="e.g. Max Verstappen"
-          onChange={(event) => onNameChange(event.target.value)}
-        />
-      </div>
-
-      <button
-        type="button"
-        className={`more-options-toggle-btn${moreOpen ? ' active' : ''}`}
-        aria-expanded={moreOpen}
-        onClick={onToggleMore}
-      >
-        <span>More options</span>
-        <span className="chevron-right">{moreOpen ? '◂' : '▸'}</span>
-      </button>
-
-      {error && <p className="form-error">{error}</p>}
-
-      <button
-        type="button"
-        className="download-button"
-        disabled={!hasPhoto || processing}
-        onClick={onDownload}
-      >
-        {processing ? 'Processing photo…' : 'Download poster (PNG)'}
-      </button>
     </div>
   );
 }

@@ -250,40 +250,40 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
 
   switch (aspectRatio) {
     case '1:1':
-      // Square — large crest fills most of the upper half.
+      // Square — fill the frame like 4:5; allow slight side overflow so portraits don't leave gaps.
       return {
         scale,
-        logoMaxWidthFrac: 0.92,
-        logoMaxHeightFrac: 0.78,
-        logoCenterY: 0.4,
+        logoMaxWidthFrac: 0.88,
+        logoMaxHeightFrac: 0.72,
+        logoCenterY: 0.36,
         logoOpacity: 0.42,
-        subjectFrac: 0.82,
-        subjectMaxWidthFrac: 0.98,
-        fadeTop: 0.7,
-        pBoxFrac: 0.14,
-        pMarginFrac: 0.024,
-        nameSizeFrac: 0.062,
-        titleSizeFrac: 0.019,
+        subjectFrac: 0.94,
+        subjectMaxWidthFrac: 1.12,
+        fadeTop: 0.72,
+        pBoxFrac: 0.13,
+        pMarginFrac: 0.026,
+        nameSizeFrac: 0.068,
+        titleSizeFrac: 0.02,
         textMaxWidthFrac: 0.9,
-        bottomBaseline: 0.93,
+        bottomBaseline: 0.94,
       };
     case '9:16':
-      // Tall story — almost full width, capped height so it sits above the fade.
+      // Tall story — prioritize height fill; allow width overflow so the cutout reaches the top band.
       return {
         scale,
-        logoMaxWidthFrac: 0.96,
-        logoMaxHeightFrac: 0.58,
-        logoCenterY: 0.32,
+        logoMaxWidthFrac: 0.98,
+        logoMaxHeightFrac: 0.48,
+        logoCenterY: 0.28,
         logoOpacity: 0.4,
-        subjectFrac: 0.84,
-        subjectMaxWidthFrac: 1.0,
-        fadeTop: 0.76,
-        pBoxFrac: 0.16,
-        pMarginFrac: 0.032,
-        nameSizeFrac: 0.072,
-        titleSizeFrac: 0.023,
+        subjectFrac: 0.92,
+        subjectMaxWidthFrac: 1.35,
+        fadeTop: 0.78,
+        pBoxFrac: 0.14,
+        pMarginFrac: 0.034,
+        nameSizeFrac: 0.068,
+        titleSizeFrac: 0.022,
         textMaxWidthFrac: 0.9,
-        bottomBaseline: 0.935,
+        bottomBaseline: 0.945,
       };
     case '3:4':
       return {

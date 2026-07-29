@@ -12,6 +12,31 @@ import {
 } from './lib/renderPoster';
 import { getCutout, trimTransparent } from './lib/removeBackground';
 
+type UiTheme = 'light' | 'dark';
+
+function readStoredTheme(): UiTheme {
+  try {
+    const stored = localStorage.getItem('poster-ui-theme');
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch {
+    /* ignore */
+  }
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    return 'light';
+  }
+  return 'dark';
+}
+
+function applyUiTheme(theme: UiTheme) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  try {
+    localStorage.setItem('poster-ui-theme', theme);
+  } catch {
+    /* ignore */
+  }
+}
+
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -28,6 +53,17 @@ export default function App() {
   const [pattern, setPattern] = useState<PatternId>('pixels');
   const [moreOpen, setMoreOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uiTheme, setUiTheme] = useState<UiTheme>(() => {
+    if (typeof document !== 'undefined') {
+      const current = document.documentElement.dataset.theme;
+      if (current === 'light' || current === 'dark') return current;
+    }
+    return readStoredTheme();
+  });
+
+  useEffect(() => {
+    applyUiTheme(uiTheme);
+  }, [uiTheme]);
 
   useEffect(() => {
     if (!photoFile) {
@@ -108,11 +144,33 @@ export default function App() {
   const ratio = getAspectRatio(aspectRatio);
 
   return (
-    <div className="app">
+    <div className={`app${moreOpen ? ' more-open' : ''}`}>
       <aside className="panel">
         <header className="panel-header">
-          <h1>Result Poster Generator</h1>
-          <p>Upload a photo, pick the placement, and download a print-ready poster.</p>
+          <div className="panel-header-text">
+            <h1>Result Poster Generator</h1>
+            <p>Upload a photo, set details, download a print-ready poster.</p>
+          </div>
+          <div className="theme-toggle" role="group" aria-label="Color mode">
+            <button
+              type="button"
+              className={`theme-toggle-option${uiTheme === 'light' ? ' active' : ''}`}
+              aria-label="Light mode"
+              aria-pressed={uiTheme === 'light'}
+              onClick={() => setUiTheme('light')}
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              className={`theme-toggle-option${uiTheme === 'dark' ? ' active' : ''}`}
+              aria-label="Dark mode"
+              aria-pressed={uiTheme === 'dark'}
+              onClick={() => setUiTheme('dark')}
+            >
+              Dark
+            </button>
+          </div>
         </header>
         <PosterForm
           hasPhoto={photoFile !== null}
