@@ -55,14 +55,14 @@ function AdjustSlider({
     <div className="field">
       <div className="field-label-row">
         <span className="field-label">{label}</span>
-        <span className="field-value">{value}%</span>
+        <span className="field-value">{value % 1 === 0 ? value : value.toFixed(1)}%</span>
       </div>
       <input
         className="range-input"
         type="range"
         min={min}
         max={max}
-        step={1}
+        step={0.1}
         value={value}
         aria-label={label}
         onChange={(e) => onChange(Number(e.target.value))}
