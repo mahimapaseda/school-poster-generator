@@ -265,7 +265,7 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
         nameSizeFrac: 0.062,
         titleSizeFrac: 0.019,
         textMaxWidthFrac: 0.9,
-        bottomBaseline: 0.965,
+        bottomBaseline: 0.93,
       };
     case '9:16':
       // Tall story — almost full width, capped height so it sits above the fade.
@@ -283,7 +283,7 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
         nameSizeFrac: 0.072,
         titleSizeFrac: 0.023,
         textMaxWidthFrac: 0.9,
-        bottomBaseline: 0.968,
+        bottomBaseline: 0.935,
       };
     case '3:4':
       return {
@@ -300,7 +300,7 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
         nameSizeFrac: 0.07,
         titleSizeFrac: 0.021,
         textMaxWidthFrac: 0.88,
-        bottomBaseline: 0.968,
+        bottomBaseline: 0.935,
       };
     case '4:5':
     default:
@@ -318,7 +318,7 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
         nameSizeFrac: 0.07,
         titleSizeFrac: 0.021,
         textMaxWidthFrac: 0.88,
-        bottomBaseline: 0.968,
+        bottomBaseline: 0.935,
       };
   }
 }
@@ -339,12 +339,6 @@ export interface PosterInputs {
   colorTheme: ColorThemeId;
   pattern: PatternId;
 }
-
-const PLACEMENT_LABELS: Record<Placement, string> = {
-  1: '1st Place',
-  2: '2nd Place',
-  3: '3rd Place',
-};
 
 let fontsReady: Promise<void> | null = null;
 
@@ -490,7 +484,7 @@ function drawPlacementCorner(
   const { digit, suffix } = PLACEMENT_ORDINALS[placement];
   // Wider/taller slot than the old "P#" mark so "1st" can render large.
   const box = Math.min(Math.round(layout.scale * layout.pBoxFrac * 1.25), Math.round(w * 0.26));
-  const marginX = Math.round(layout.scale * layout.pMarginFrac);
+  const marginX = Math.round(layout.scale * layout.pMarginFrac * 1.85);
   const marginY = Math.round(layout.scale * layout.pMarginFrac * 1.05);
 
   ctx.save();
@@ -652,11 +646,10 @@ function wrapText(
 }
 
 /**
- * Centered bottom stack matching the reference hierarchy and line spacing:
- *   1ST PLACE          (gold, small)
- *   STUDENT NAME       (white, large)  — medium gap above
+ * Centered bottom stack:
+ *   STUDENT NAME       (white, large)
  *   ALL ISLAND         (gold)          — tight gap under name
- *   COMPETITION TITLE  (silver)        — largest gap under level
+ *   COMPETITION TITLE  (silver)
  */
 function drawBottomStack(
   ctx: CanvasRenderingContext2D,
@@ -666,7 +659,7 @@ function drawBottomStack(
   layout: RatioLayout,
   theme: ColorTheme,
 ): void {
-  const { name, level, title, placement } = inputs;
+  const { name, level, title } = inputs;
   const centerX = w / 2;
   const maxTextWidth = w * layout.textMaxWidthFrac;
   const s = layout.scale;
@@ -674,10 +667,6 @@ function drawBottomStack(
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
-
-  // --- Measure each layer ---
-  const labelSize = Math.round(s * 0.019);
-  const labelText = PLACEMENT_LABELS[placement].toUpperCase();
 
   const displayName = (name.trim() || 'STUDENT NAME').toUpperCase();
   let nameSize = Math.round(s * layout.nameSizeFrac);
@@ -696,33 +685,22 @@ function drawBottomStack(
   const titleLines = titleText ? wrapText(ctx, titleText, maxTextWidth, 2) : [];
   const titleBlockH = titleLines.length > 0 ? (titleLines.length - 1) * titleLineHeight : 0;
 
-  // Line spacing: name↔level tight; level↔title also tight (they're one connected block).
-  const gapPlacementToName = Math.round(nameSize * 0.38);
   const gapNameToLevel = Math.round(nameSize * 0.22);
   const gapLevelToTitle = Math.round(nameSize * 0.12);
 
-  // Stack height from placement baseline down to last title baseline.
   const hasLevel = levelText.length > 0;
   const hasTitle = titleLines.length > 0;
-  let stackH = labelSize + gapPlacementToName + nameSize;
+  let stackH = nameSize;
   if (hasLevel) stackH += gapNameToLevel + levelSize;
   if (hasTitle) {
     stackH += (hasLevel ? gapLevelToTitle : gapNameToLevel) + titleBlockH + titleSize;
   }
 
-  // Anchor the whole block near the bottom of the poster.
   const stackBottom = h * layout.bottomBaseline;
   const stackTop = stackBottom - stackH;
-  let y = stackTop + labelSize;
+  let y = stackTop + nameSize;
 
-  // 1) Placement
-  ctx.font = `600 ${labelSize}px Archivo`;
-  ctx.letterSpacing = `${Math.round(s * 0.01)}px`;
-  ctx.fillStyle = theme.accent;
-  ctx.fillText(labelText, centerX, y);
-
-  // 2) Student name
-  y += gapPlacementToName + nameSize;
+  // 1) Student name
   ctx.font = `400 ${nameSize}px Anton`;
   ctx.letterSpacing = `${Math.round(s * 0.002)}px`;
   ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
@@ -734,7 +712,7 @@ function drawBottomStack(
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // 3) Level
+  // 2) Level
   if (hasLevel) {
     y += gapNameToLevel + levelSize;
     ctx.font = `600 ${levelSize}px Archivo`;
@@ -743,7 +721,7 @@ function drawBottomStack(
     ctx.fillText(levelText, centerX, y);
   }
 
-  // 4) Competition title
+  // 3) Competition title
   if (hasTitle) {
     y += (hasLevel ? gapLevelToTitle : gapNameToLevel) + titleSize;
     ctx.font = `600 ${titleSize}px Archivo`;
