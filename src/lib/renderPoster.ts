@@ -15,7 +15,19 @@ export type ColorThemeId =
   | 'rose'
   | 'teal'
   | 'midnight'
-  | 'maroon';
+  | 'maroon'
+  | 'indigo'
+  | 'copper'
+  | 'arctic'
+  | 'plum'
+  | 'olive'
+  | 'coral'
+  | 'steel'
+  | 'wine'
+  | 'jade'
+  | 'amber'
+  | 'graphite'
+  | 'azure';
 
 export type PatternId =
   | 'pixels'
@@ -204,6 +216,126 @@ export const COLOR_THEMES: ColorTheme[] = [
     fadeRgb: '20, 5, 8',
     accent: '#f0c850',
     swatch: '#8a2840',
+  },
+  {
+    id: 'indigo',
+    label: 'Indigo',
+    gradient: ['#1a1848', '#121034', '#08061c'],
+    pattern: ['#2e2a7a', '#3c38a0', '#5048c8', '#222060'],
+    glow: 'rgba(150, 160, 255, 0.3)',
+    fadeRgb: '8, 6, 28',
+    accent: '#e8c050',
+    swatch: '#3c38a0',
+  },
+  {
+    id: 'copper',
+    label: 'Copper',
+    gradient: ['#3a2418', '#281810', '#140c08'],
+    pattern: ['#7a4a28', '#9a5e30', '#b87438', '#5a361c'],
+    glow: 'rgba(240, 170, 110, 0.28)',
+    fadeRgb: '20, 12, 8',
+    accent: '#ffd070',
+    swatch: '#9a5e30',
+  },
+  {
+    id: 'arctic',
+    label: 'Arctic',
+    gradient: ['#1a2838', '#121c28', '#080e14'],
+    pattern: ['#3a5870', '#4a7090', '#5a88a8', '#2a4058'],
+    glow: 'rgba(180, 220, 255, 0.3)',
+    fadeRgb: '8, 14, 20',
+    accent: '#e8f0ff',
+    swatch: '#4a7090',
+  },
+  {
+    id: 'plum',
+    label: 'Plum',
+    gradient: ['#2e1428', '#200e1c', '#100810'],
+    pattern: ['#5a2850', '#743468', '#904080', '#441c3c'],
+    glow: 'rgba(220, 140, 210, 0.28)',
+    fadeRgb: '16, 8, 16',
+    accent: '#f0c070',
+    swatch: '#743468',
+  },
+  {
+    id: 'olive',
+    label: 'Olive',
+    gradient: ['#2a2e18', '#1c2010', '#0e1008'],
+    pattern: ['#4a5428', '#5e6a34', '#748040', '#38401c'],
+    glow: 'rgba(200, 210, 120, 0.26)',
+    fadeRgb: '14, 16, 8',
+    accent: '#e8d060',
+    swatch: '#5e6a34',
+  },
+  {
+    id: 'coral',
+    label: 'Coral',
+    gradient: ['#3a1c1c', '#281212', '#140808'],
+    pattern: ['#8a3a3a', '#b04a4a', '#d06060', '#6a2c2c'],
+    glow: 'rgba(255, 150, 140, 0.28)',
+    fadeRgb: '20, 8, 8',
+    accent: '#ffd080',
+    swatch: '#b04a4a',
+  },
+  {
+    id: 'steel',
+    label: 'Steel',
+    gradient: ['#222830', '#161a20', '#0a0c10'],
+    pattern: ['#3a4654', '#4e5c6c', '#647484', '#2c3440'],
+    glow: 'rgba(170, 190, 210, 0.24)',
+    fadeRgb: '10, 12, 16',
+    accent: '#d0d8e0',
+    swatch: '#4e5c6c',
+  },
+  {
+    id: 'wine',
+    label: 'Wine',
+    gradient: ['#2e1018', '#200a10', '#100508'],
+    pattern: ['#5a1828', '#782030', '#962840', '#44121c'],
+    glow: 'rgba(220, 110, 140, 0.26)',
+    fadeRgb: '16, 5, 8',
+    accent: '#e8b850',
+    swatch: '#782030',
+  },
+  {
+    id: 'jade',
+    label: 'Jade',
+    gradient: ['#0e3028', '#0a201a', '#04100c'],
+    pattern: ['#1a5a4a', '#247860', '#2e9878', '#144438'],
+    glow: 'rgba(100, 230, 190, 0.28)',
+    fadeRgb: '4, 16, 12',
+    accent: '#e8d060',
+    swatch: '#247860',
+  },
+  {
+    id: 'amber',
+    label: 'Amber',
+    gradient: ['#3a2810', '#281a0a', '#140c04'],
+    pattern: ['#7a5420', '#9a6a28', '#b88030', '#5a3c18'],
+    glow: 'rgba(255, 200, 80, 0.3)',
+    fadeRgb: '20, 12, 4',
+    accent: '#ffe090',
+    swatch: '#9a6a28',
+  },
+  {
+    id: 'graphite',
+    label: 'Graphite',
+    gradient: ['#1e2226', '#141618', '#080a0c'],
+    pattern: ['#343a42', '#484e58', '#5c6470', '#262a30'],
+    glow: 'rgba(160, 170, 180, 0.22)',
+    fadeRgb: '8, 10, 12',
+    accent: '#e0c060',
+    swatch: '#484e58',
+  },
+  {
+    id: 'azure',
+    label: 'Azure',
+    gradient: ['#0c2848', '#081c34', '#040e1c'],
+    pattern: ['#1850a0', '#2068c8', '#2880e8', '#123c78'],
+    glow: 'rgba(100, 180, 255, 0.3)',
+    fadeRgb: '4, 14, 28',
+    accent: '#e8c050',
+    swatch: '#2068c8',
   },
 ];
 
