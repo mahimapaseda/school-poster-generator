@@ -58,6 +58,7 @@ export default function App() {
   const [logoSize, setLogoSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.logoSize);
   const [photoSize, setPhotoSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.photoSize);
   const [ordinalSize, setOrdinalSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.ordinalSize);
+  const [nameSize, setNameSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.nameSize);
   const [textPosition, setTextPosition] = useState<TextPosition>(
     DEFAULT_LAYOUT_OVERRIDES.textPosition,
   );
@@ -133,6 +134,7 @@ export default function App() {
           logoSize,
           photoSize,
           ordinalSize,
+          nameSize,
           textPosition,
         },
       });
@@ -155,6 +157,7 @@ export default function App() {
     logoSize,
     photoSize,
     ordinalSize,
+    nameSize,
     textPosition,
   ]);
 
@@ -234,6 +237,7 @@ export default function App() {
         logoSize={logoSize}
         photoSize={photoSize}
         ordinalSize={ordinalSize}
+        nameSize={nameSize}
         textPosition={textPosition}
         onClose={() => setMoreOpen(false)}
         onAspectRatioChange={setAspectRatio}
@@ -243,6 +247,7 @@ export default function App() {
         onLogoSizeChange={setLogoSize}
         onPhotoSizeChange={setPhotoSize}
         onOrdinalSizeChange={setOrdinalSize}
+        onNameSizeChange={setNameSize}
         onTextPositionChange={setTextPosition}
       />
 

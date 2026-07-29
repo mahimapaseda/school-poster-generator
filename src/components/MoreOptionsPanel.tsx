@@ -20,6 +20,7 @@ interface MoreOptionsPanelProps {
   logoSize: SizePreset;
   photoSize: SizePreset;
   ordinalSize: SizePreset;
+  nameSize: SizePreset;
   textPosition: TextPosition;
   onClose: () => void;
   onAspectRatioChange: (aspectRatio: AspectRatioId) => void;
@@ -29,6 +30,7 @@ interface MoreOptionsPanelProps {
   onLogoSizeChange: (size: SizePreset) => void;
   onPhotoSizeChange: (size: SizePreset) => void;
   onOrdinalSizeChange: (size: SizePreset) => void;
+  onNameSizeChange: (size: SizePreset) => void;
   onTextPositionChange: (position: TextPosition) => void;
 }
 
@@ -64,6 +66,7 @@ export function MoreOptionsPanel({
   logoSize,
   photoSize,
   ordinalSize,
+  nameSize,
   textPosition,
   onClose,
   onAspectRatioChange,
@@ -73,6 +76,7 @@ export function MoreOptionsPanel({
   onLogoSizeChange,
   onPhotoSizeChange,
   onOrdinalSizeChange,
+  onNameSizeChange,
   onTextPositionChange,
 }: MoreOptionsPanelProps) {
   if (!open) return null;
@@ -174,19 +178,24 @@ export function MoreOptionsPanel({
             <SizeSegmented value={ordinalSize} onChange={onOrdinalSizeChange} />
           </div>
           <div className="field">
-            <span className="field-label">Text position</span>
-            <div className="segmented">
-              {TEXT_POSITIONS.map(({ id, label }) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={textPosition === id ? 'active' : ''}
-                  onClick={() => onTextPositionChange(id)}
-                >
-                  {label === 'Default' ? 'Mid' : label === 'Higher' ? 'Up' : 'Down'}
-                </button>
-              ))}
-            </div>
+            <span className="field-label">Name size</span>
+            <SizeSegmented value={nameSize} onChange={onNameSizeChange} />
+          </div>
+        </div>
+
+        <div className="field">
+          <span className="field-label">Text position</span>
+          <div className="segmented">
+            {TEXT_POSITIONS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                className={textPosition === id ? 'active' : ''}
+                onClick={() => onTextPositionChange(id)}
+              >
+                {label === 'Default' ? 'Mid' : label === 'Higher' ? 'Up' : 'Down'}
+              </button>
+            ))}
           </div>
         </div>
       </div>

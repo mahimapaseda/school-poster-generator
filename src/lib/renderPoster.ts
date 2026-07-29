@@ -231,6 +231,7 @@ export interface LayoutOverrides {
   logoSize: SizePreset;
   photoSize: SizePreset;
   ordinalSize: SizePreset;
+  nameSize: SizePreset;
   textPosition: TextPosition;
 }
 
@@ -239,6 +240,7 @@ export const DEFAULT_LAYOUT_OVERRIDES: LayoutOverrides = {
   logoSize: 'M',
   photoSize: 'M',
   ordinalSize: 'M',
+  nameSize: 'M',
   textPosition: 'default',
 };
 
@@ -252,6 +254,7 @@ function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): 
   const logoMul = SIZE_SCALE[overrides.logoSize];
   const photoMul = SIZE_SCALE[overrides.photoSize];
   const ordinalMul = SIZE_SCALE[overrides.ordinalSize];
+  const nameMul = SIZE_SCALE[overrides.nameSize];
 
   let bottomBaseline = layout.bottomBaseline;
   if (overrides.textPosition === 'higher') bottomBaseline = Math.max(0.86, bottomBaseline - 0.04);
@@ -265,6 +268,8 @@ function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): 
     subjectFrac: Math.min(0.98, layout.subjectFrac * photoMul),
     subjectMaxWidthFrac: Math.min(1.5, layout.subjectMaxWidthFrac * photoMul),
     pBoxFrac: layout.pBoxFrac * ordinalMul,
+    nameSizeFrac: layout.nameSizeFrac * nameMul,
+    titleSizeFrac: layout.titleSizeFrac * (0.9 + nameMul * 0.1),
     bottomBaseline,
   };
 }
