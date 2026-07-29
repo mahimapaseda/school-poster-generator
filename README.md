@@ -42,6 +42,20 @@ On iPhone/iPad: Safari → Share → **Add to Home Screen**.
 
 The service worker caches the app shell and fonts for faster launches. The background-removal model still downloads on first photo processing (~40 MB).
 
+## Screenshots
+
+Desktop UI (More options):
+
+![Desktop UI](public/screenshots/desktop-ui.png)
+
+Mobile / tablet UI (responsive overlay; no page scrolling):
+
+![Mobile / Tablet UI](public/screenshots/mobile-ui.png)
+
+Bold demo for Level + Competition title:
+
+![Text styling](public/screenshots/text-bold.png)
+
 ## Tech
 
 - Vite + React + TypeScript
