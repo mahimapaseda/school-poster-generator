@@ -210,6 +210,65 @@ export function getColorTheme(id: ColorThemeId): ColorTheme {
   return COLOR_THEMES.find((t) => t.id === id) ?? COLOR_THEMES[0];
 }
 
+export type SizePreset = 'S' | 'M' | 'L';
+export type TextPosition = 'higher' | 'default' | 'lower';
+
+export const SIZE_PRESETS: Array<{ id: SizePreset; label: string }> = [
+  { id: 'S', label: 'S' },
+  { id: 'M', label: 'M' },
+  { id: 'L', label: 'L' },
+];
+
+export const TEXT_POSITIONS: Array<{ id: TextPosition; label: string }> = [
+  { id: 'higher', label: 'Higher' },
+  { id: 'default', label: 'Default' },
+  { id: 'lower', label: 'Lower' },
+];
+
+/** User adjustments from More options; applied on top of per-ratio defaults. */
+export interface LayoutOverrides {
+  logoOpacity: number;
+  logoSize: SizePreset;
+  photoSize: SizePreset;
+  ordinalSize: SizePreset;
+  textPosition: TextPosition;
+}
+
+export const DEFAULT_LAYOUT_OVERRIDES: LayoutOverrides = {
+  logoOpacity: 0.42,
+  logoSize: 'M',
+  photoSize: 'M',
+  ordinalSize: 'M',
+  textPosition: 'default',
+};
+
+const SIZE_SCALE: Record<SizePreset, number> = {
+  S: 0.78,
+  M: 1,
+  L: 1.22,
+};
+
+function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): RatioLayout {
+  const logoMul = SIZE_SCALE[overrides.logoSize];
+  const photoMul = SIZE_SCALE[overrides.photoSize];
+  const ordinalMul = SIZE_SCALE[overrides.ordinalSize];
+
+  let bottomBaseline = layout.bottomBaseline;
+  if (overrides.textPosition === 'higher') bottomBaseline = Math.max(0.86, bottomBaseline - 0.04);
+  if (overrides.textPosition === 'lower') bottomBaseline = Math.min(0.975, bottomBaseline + 0.03);
+
+  return {
+    ...layout,
+    logoMaxWidthFrac: Math.min(1.05, layout.logoMaxWidthFrac * logoMul),
+    logoMaxHeightFrac: Math.min(0.95, layout.logoMaxHeightFrac * logoMul),
+    logoOpacity: Math.min(1, Math.max(0.2, overrides.logoOpacity)),
+    subjectFrac: Math.min(0.98, layout.subjectFrac * photoMul),
+    subjectMaxWidthFrac: Math.min(1.5, layout.subjectMaxWidthFrac * photoMul),
+    pBoxFrac: layout.pBoxFrac * ordinalMul,
+    bottomBaseline,
+  };
+}
+
 /**
  * Layout knobs per aspect ratio. Logo uses a large contain-fit box so the
  * crest fills the upper poster like the old giant P-mark, scaled per ratio.
@@ -338,6 +397,8 @@ export interface PosterInputs {
   aspectRatio: AspectRatioId;
   colorTheme: ColorThemeId;
   pattern: PatternId;
+  /** Optional More options layout tweaks; defaults preserve per-ratio look. */
+  layoutOverrides?: LayoutOverrides;
 }
 
 let fontsReady: Promise<void> | null = null;
@@ -742,7 +803,11 @@ export function renderPoster(canvas: HTMLCanvasElement, inputs: PosterInputs): v
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const layout = getRatioLayout(width, height, inputs.aspectRatio);
+  const baseLayout = getRatioLayout(width, height, inputs.aspectRatio);
+  const layout = applyLayoutOverrides(
+    baseLayout,
+    inputs.layoutOverrides ?? DEFAULT_LAYOUT_OVERRIDES,
+  );
   const theme = getColorTheme(inputs.colorTheme);
 
   drawBackground(ctx, width, height, theme, inputs.pattern);

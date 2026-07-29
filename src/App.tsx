@@ -5,10 +5,13 @@ import {
   ensureFonts,
   getAspectRatio,
   renderPoster,
+  DEFAULT_LAYOUT_OVERRIDES,
   type AspectRatioId,
   type ColorThemeId,
   type PatternId,
   type Placement,
+  type SizePreset,
+  type TextPosition,
 } from './lib/renderPoster';
 import { getCutout, trimTransparent } from './lib/removeBackground';
 
@@ -51,6 +54,13 @@ export default function App() {
   const [aspectRatio, setAspectRatio] = useState<AspectRatioId>('4:5');
   const [colorTheme, setColorTheme] = useState<ColorThemeId>('navy');
   const [pattern, setPattern] = useState<PatternId>('pixels');
+  const [logoOpacity, setLogoOpacity] = useState(DEFAULT_LAYOUT_OVERRIDES.logoOpacity);
+  const [logoSize, setLogoSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.logoSize);
+  const [photoSize, setPhotoSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.photoSize);
+  const [ordinalSize, setOrdinalSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.ordinalSize);
+  const [textPosition, setTextPosition] = useState<TextPosition>(
+    DEFAULT_LAYOUT_OVERRIDES.textPosition,
+  );
   const [moreOpen, setMoreOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uiTheme, setUiTheme] = useState<UiTheme>(() => {
@@ -118,12 +128,35 @@ export default function App() {
         aspectRatio,
         colorTheme,
         pattern,
+        layoutOverrides: {
+          logoOpacity,
+          logoSize,
+          photoSize,
+          ordinalSize,
+          textPosition,
+        },
       });
     });
     return () => {
       cancelled = true;
     };
-  }, [rawPhoto, cutout, logo, name, level, title, placement, aspectRatio, colorTheme, pattern]);
+  }, [
+    rawPhoto,
+    cutout,
+    logo,
+    name,
+    level,
+    title,
+    placement,
+    aspectRatio,
+    colorTheme,
+    pattern,
+    logoOpacity,
+    logoSize,
+    photoSize,
+    ordinalSize,
+    textPosition,
+  ]);
 
   const handleDownload = useCallback(() => {
     const canvas = canvasRef.current;
@@ -197,10 +230,20 @@ export default function App() {
         aspectRatio={aspectRatio}
         colorTheme={colorTheme}
         pattern={pattern}
+        logoOpacity={logoOpacity}
+        logoSize={logoSize}
+        photoSize={photoSize}
+        ordinalSize={ordinalSize}
+        textPosition={textPosition}
         onClose={() => setMoreOpen(false)}
         onAspectRatioChange={setAspectRatio}
         onColorThemeChange={setColorTheme}
         onPatternChange={setPattern}
+        onLogoOpacityChange={setLogoOpacity}
+        onLogoSizeChange={setLogoSize}
+        onPhotoSizeChange={setPhotoSize}
+        onOrdinalSizeChange={setOrdinalSize}
+        onTextPositionChange={setTextPosition}
       />
 
       <main className="preview">
