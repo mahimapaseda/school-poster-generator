@@ -97,7 +97,6 @@ function drawHeaderText(
   ctx.font = `400 ${titleSize}px Anton`;
   const titleMetrics = ctx.measureText(titleText);
   const titleAscent = titleMetrics.actualBoundingBoxAscent || titleSize * 0.85;
-  const titleDescent = titleMetrics.actualBoundingBoxDescent || titleSize * 0.15;
 
   const levelSize = levelText ? Math.round(scale * 0.028 * levelMul) : 0;
   let levelAscent = 0;
