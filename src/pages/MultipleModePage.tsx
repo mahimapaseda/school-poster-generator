@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { InstallAppButton } from '../components/InstallAppButton';
 import { MoreOptionsPanel } from '../components/MoreOptionsPanel';
-import {
-  MultiPosterForm,
-  type PersonSlotReport,
-  type PersonSlotSeed,
-} from '../components/MultiPosterForm';
+import { MultiPosterForm, type PersonSlotReport } from '../components/MultiPosterForm';
 import {
   ensureFonts,
   getAspectRatio,
@@ -18,20 +14,9 @@ import {
 import {
   renderMultiPoster,
   type MultiPersonInputs,
-  type MultiPlacement,
   type PersonCount,
 } from '../lib/renderMultiPoster';
 import { loadDefaultLogo } from '../lib/defaultLogo';
-import {
-  bitmapToPngBlob,
-  blobToFile,
-  canvasToThumbBlob,
-  getPoster,
-  newPosterId,
-  savePoster,
-  type SavedMultiplePoster,
-  type SavedPerson,
-} from '../lib/posterLibrary';
 import { preloadCutoutModel, trimTransparent } from '../lib/removeBackground';
 import { applyUiTheme, initialUiTheme, type UiTheme } from '../lib/uiTheme';
 
@@ -40,33 +25,23 @@ function emptyReport(placement: number): PersonSlotReport {
     subject: null,
     subjectIsCutout: false,
     name: '',
-    placement: Math.min(8, Math.max(1, placement)) as MultiPlacement,
+    placement: Math.min(8, Math.max(1, placement)) as PersonSlotReport['placement'],
     hasPhoto: false,
     processing: false,
     error: null,
     photoLabel: null,
-    photoFile: null,
-    cutout: null,
   };
 }
 
 export default function MultipleModePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const queryId = searchParams.get('id');
-
-  const [libraryId, setLibraryId] = useState<string | null>(queryId);
   const [personCount, setPersonCount] = useState<PersonCount>(2);
   const [slotReports, setSlotReports] = useState<PersonSlotReport[]>(() => [
     emptyReport(1),
     emptyReport(2),
   ]);
-  const [slotSeeds, setSlotSeeds] = useState<PersonSlotSeed[] | null>(null);
-  const [slotsKey, setSlotsKey] = useState(queryId ?? 'new');
 
   const [logo, setLogo] = useState<ImageBitmap | null>(null);
-  const [logoCustomFile, setLogoCustomFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [level, setLevel] = useState('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatioId>('4:5');
@@ -83,16 +58,11 @@ export default function MultipleModePage() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [uiTheme, setUiTheme] = useState<UiTheme>(initialUiTheme);
-  const [saving, setSaving] = useState(false);
-  const [saveLabel, setSaveLabel] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [hydrateReady, setHydrateReady] = useState(!queryId);
-  const createdAtRef = useRef<number>(Date.now());
 
   const activeSlots = slotReports.slice(0, personCount);
   const processing = activeSlots.some((s) => s.processing);
   const hasPhotos = activeSlots.length === personCount && activeSlots.every((s) => s.hasPhoto);
-  const error = loadError ?? activeSlots.find((s) => s.error)?.error ?? null;
+  const error = activeSlots.find((s) => s.error)?.error ?? null;
 
   useEffect(() => {
     applyUiTheme(uiTheme);
@@ -103,87 +73,18 @@ export default function MultipleModePage() {
   }, []);
 
   useEffect(() => {
-    if (!queryId) {
-      setHydrateReady(true);
-      let cancelled = false;
-      loadDefaultLogo()
-        .then((bitmap) => {
-          if (!cancelled) setLogo(bitmap);
-        })
-        .catch((err) => console.warn('[logo] default load failed', err));
-      return () => {
-        cancelled = true;
-      };
-    }
-
     let cancelled = false;
-    setHydrateReady(false);
-    getPoster(queryId)
-      .then(async (record) => {
-        if (cancelled || !record || record.mode !== 'multiple') {
-          if (!cancelled) {
-            setLoadError('Saved poster not found.');
-            setHydrateReady(true);
-            loadDefaultLogo().then(setLogo).catch(() => setLogo(null));
-          }
-          return;
-        }
-        createdAtRef.current = record.createdAt;
-        setLibraryId(record.id);
-        setTitle(record.title);
-        setLevel(record.level);
-        setPersonCount(record.personCount);
-        setAspectRatio(record.aspectRatio);
-        setColorTheme(record.colorTheme);
-        setPattern(record.pattern);
-        setLogoOpacity(record.layoutOverrides.logoOpacity);
-        setLogoSize(record.layoutOverrides.logoSize);
-        setPhotoSize(record.layoutOverrides.photoSize);
-        setOrdinalSize(record.layoutOverrides.ordinalSize);
-        setNameSize(record.layoutOverrides.nameSize);
-        setLevelSize(record.layoutOverrides.levelSize);
-        setTitleSize(record.layoutOverrides.titleSize);
-        setTextPosition(record.layoutOverrides.textPosition);
-
-        if (record.logo.kind === 'custom') {
-          const file = blobToFile(record.logo.blob, record.logo.name);
-          setLogoCustomFile(file);
-          const bitmap = await createImageBitmap(record.logo.blob).then(trimTransparent);
-          if (!cancelled) setLogo(bitmap);
-        } else {
-          setLogoCustomFile(null);
-          const bitmap = await loadDefaultLogo();
-          if (!cancelled) setLogo(bitmap);
-        }
-
-        const seeds: PersonSlotSeed[] = record.people.map((person) => ({
-          name: person.name,
-          placement: person.placement,
-          photoFile: person.photoBlob
-            ? blobToFile(person.photoBlob, person.photoName || 'photo.png')
-            : null,
-          photoLabel: person.photoName,
-          cutoutBlob: person.cutoutBlob,
-        }));
-        setSlotReports(
-          Array.from({ length: record.personCount }, (_, i) => emptyReport(i + 1)),
-        );
-        setSlotSeeds(seeds);
-        setSlotsKey(record.id);
-        if (!cancelled) setHydrateReady(true);
+    loadDefaultLogo()
+      .then((bitmap) => {
+        if (!cancelled) setLogo(bitmap);
       })
       .catch((err) => {
-        console.error('[library]', err);
-        if (!cancelled) {
-          setLoadError('Could not load saved poster.');
-          setHydrateReady(true);
-        }
+        console.warn('[logo] default load failed', err);
       });
-
     return () => {
       cancelled = true;
     };
-  }, [queryId]);
+  }, []);
 
   useEffect(() => {
     setSlotReports((prev) => {
@@ -201,15 +102,7 @@ export default function MultipleModePage() {
 
   const handlePersonReport = useCallback((index: number, report: PersonSlotReport) => {
     setSlotReports((prev) => {
-      const next =
-        prev.length > index
-          ? [...prev]
-          : [
-              ...prev,
-              ...Array.from({ length: index - prev.length + 1 }, (_, i) =>
-                emptyReport(prev.length + i + 1),
-              ),
-            ];
+      const next = prev.length > index ? [...prev] : [...prev, ...Array.from({ length: index - prev.length + 1 }, (_, i) => emptyReport(prev.length + i + 1))];
       next[index] = report;
       return next;
     });
@@ -217,19 +110,17 @@ export default function MultipleModePage() {
 
   const handleLogoChange = useCallback((file: File | null) => {
     if (!file) {
-      setLogoCustomFile(null);
       loadDefaultLogo()
         .then(setLogo)
         .catch(() => setLogo(null));
       return;
     }
-    setLogoCustomFile(file);
     createImageBitmap(file).then(trimTransparent).then(setLogo);
   }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !hydrateReady) return;
+    if (!canvas) return;
     let cancelled = false;
     const people: MultiPersonInputs[] = slotReports.slice(0, personCount).map((s) => ({
       subject: s.subject,
@@ -264,7 +155,6 @@ export default function MultipleModePage() {
       cancelled = true;
     };
   }, [
-    hydrateReady,
     slotReports,
     personCount,
     logo,
@@ -299,89 +189,6 @@ export default function MultipleModePage() {
     }, 'image/png');
   }, [title, aspectRatio, personCount]);
 
-  const handleSave = useCallback(async () => {
-    const canvas = canvasRef.current;
-    if (!canvas || !hasPhotos) return;
-    setSaving(true);
-    setSaveLabel(null);
-    try {
-      const id = libraryId ?? newPosterId();
-      const now = Date.now();
-      const people: SavedPerson[] = [];
-      for (const slot of activeSlots) {
-        const cutoutBlob = slot.cutout ? await bitmapToPngBlob(slot.cutout) : null;
-        people.push({
-          name: slot.name,
-          placement: slot.placement,
-          photoBlob: slot.photoFile,
-          photoName: slot.photoFile?.name ?? slot.photoLabel,
-          cutoutBlob,
-        });
-      }
-      const thumbBlob = await canvasToThumbBlob(canvas);
-      const record: SavedMultiplePoster = {
-        id,
-        mode: 'multiple',
-        createdAt: libraryId ? createdAtRef.current : now,
-        updatedAt: now,
-        label: title.trim() || level.trim() || 'Untitled multiple',
-        title,
-        level,
-        aspectRatio,
-        colorTheme,
-        pattern,
-        layoutOverrides: {
-          logoOpacity,
-          logoSize,
-          photoSize,
-          ordinalSize,
-          nameSize,
-          levelSize,
-          titleSize,
-          textPosition,
-        },
-        logo: logoCustomFile
-          ? { kind: 'custom', blob: logoCustomFile, name: logoCustomFile.name }
-          : { kind: 'default' },
-        thumbBlob,
-        personCount,
-        people,
-      };
-      await savePoster(record);
-      createdAtRef.current = record.createdAt;
-      setLibraryId(id);
-      if (queryId !== id) navigate(`/multiple?id=${id}`, { replace: true });
-      setSaveLabel('Saved to Library');
-      window.setTimeout(() => setSaveLabel(null), 2500);
-    } catch (err) {
-      console.error('[library] save', err);
-      setSaveLabel('Save failed');
-    } finally {
-      setSaving(false);
-    }
-  }, [
-    libraryId,
-    queryId,
-    navigate,
-    hasPhotos,
-    activeSlots,
-    logoCustomFile,
-    title,
-    level,
-    personCount,
-    aspectRatio,
-    colorTheme,
-    pattern,
-    logoOpacity,
-    logoSize,
-    photoSize,
-    ordinalSize,
-    nameSize,
-    levelSize,
-    titleSize,
-    textPosition,
-  ]);
-
   const ratio = getAspectRatio(aspectRatio);
 
   return (
@@ -399,9 +206,6 @@ export default function MultipleModePage() {
         </button>
         <span className="mobile-toolbar-title">Multiple Mode</span>
         <div className="mobile-toolbar-actions">
-          <Link to="/library" className="home-nav-link compact" aria-label="Library">
-            Library
-          </Link>
           <Link to="/" className="home-nav-link compact" aria-label="Back to Home">
             Home
           </Link>
@@ -442,16 +246,11 @@ export default function MultipleModePage() {
       <aside className={`panel${menuOpen ? ' menu-open' : ''}`}>
         <header className="panel-header">
           <div className="panel-header-text">
-            <div className="panel-nav-row">
-              <Link to="/" className="home-nav-link">
-                ← Home
-              </Link>
-              <Link to="/library" className="home-nav-link">
-                Library
-              </Link>
-            </div>
+            <Link to="/" className="home-nav-link">
+              ← Home
+            </Link>
             <h1>Multiple Mode</h1>
-            <p>Race-style poster for 2–8 people — save or download.</p>
+            <p>Race-style poster for 2–8 people on one image.</p>
           </div>
           <div className="panel-header-actions">
             <InstallAppButton />
@@ -494,17 +293,12 @@ export default function MultipleModePage() {
           hasPhotos={hasPhotos}
           processing={processing}
           error={error}
-          saving={saving}
-          saveLabel={saveLabel}
-          slotsKey={slotsKey}
-          slotSeeds={slotSeeds}
           onLogoChange={handleLogoChange}
           onTitleChange={setTitle}
           onLevelChange={setLevel}
           onPersonReport={handlePersonReport}
           onToggleMore={() => setMoreOpen((open) => !open)}
           onDownload={handleDownload}
-          onSave={handleSave}
         />
       </aside>
 
@@ -545,10 +339,10 @@ export default function MultipleModePage() {
           }
         >
           <canvas ref={canvasRef} className="poster-canvas" />
-          {(processing || !hydrateReady) && (
+          {processing && (
             <div className="preview-overlay">
               <div className="spinner" />
-              <span>{hydrateReady ? 'Removing background…' : 'Loading saved poster…'}</span>
+              <span>Removing background…</span>
             </div>
           )}
         </div>

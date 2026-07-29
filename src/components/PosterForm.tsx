@@ -12,8 +12,6 @@ interface PosterFormProps {
   placement: Placement;
   moreOpen: boolean;
   error: string | null;
-  saving?: boolean;
-  saveLabel?: string | null;
   onPhotoChange: (file: File | null) => void;
   onLogoChange: (file: File | null) => void;
   onNameChange: (name: string) => void;
@@ -23,9 +21,6 @@ interface PosterFormProps {
   onPlacementChange: (placement: Placement) => void;
   onToggleMore: () => void;
   onDownload: () => void;
-  onSave: () => void;
-  /** Shown when parent restored a photo from the library. */
-  photoLabelHint?: string | null;
 }
 
 const PLACEMENTS: Array<{ value: Placement; label: string }> = [
@@ -57,9 +52,6 @@ export function PosterForm({
   placement,
   moreOpen,
   error,
-  saving = false,
-  saveLabel = null,
-  photoLabelHint = null,
   onPhotoChange,
   onLogoChange,
   onNameChange,
@@ -69,7 +61,6 @@ export function PosterForm({
   onPlacementChange,
   onToggleMore,
   onDownload,
-  onSave,
 }: PosterFormProps) {
   const [dragging, setDragging] = useState(false);
   const [photoLabel, setPhotoLabel] = useState<string | null>(null);
@@ -124,8 +115,8 @@ export function PosterForm({
             onDrop={handleDrop}
           >
             <input type="file" accept="image/*" onChange={handlePhotoInput} hidden />
-            {photoLabel || photoLabelHint ? (
-              <span className="dropzone-file">{photoLabel ?? photoLabelHint}</span>
+            {photoLabel ? (
+              <span className="dropzone-file">{photoLabel}</span>
             ) : (
               <span>Drop photo or click to browse</span>
             )}
@@ -240,26 +231,15 @@ export function PosterForm({
         </button>
 
         {error && <p className="form-error">{error}</p>}
-        {saveLabel && <p className="form-save-status">{saveLabel}</p>}
 
-        <div className="form-action-row">
-          <button
-            type="button"
-            className="save-button"
-            disabled={!hasPhoto || processing || saving}
-            onClick={onSave}
-          >
-            {saving ? 'Saving…' : 'Save to Library'}
-          </button>
-          <button
-            type="button"
-            className="download-button"
-            disabled={!hasPhoto || processing}
-            onClick={onDownload}
-          >
-            {processing ? 'Processing photo…' : 'Download poster (PNG)'}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="download-button"
+          disabled={!hasPhoto || processing}
+          onClick={onDownload}
+        >
+          {processing ? 'Processing photo…' : 'Download poster (PNG)'}
+        </button>
       </div>
     </div>
   );
