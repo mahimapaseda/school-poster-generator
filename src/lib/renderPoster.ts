@@ -385,6 +385,8 @@ export interface LayoutOverrides {
   photoSize: SizePreset;
   ordinalSize: SizePreset;
   nameSize: SizePreset;
+  levelSize: SizePreset;
+  titleSize: SizePreset;
   textPosition: TextPosition;
 }
 
@@ -394,6 +396,8 @@ export const DEFAULT_LAYOUT_OVERRIDES: LayoutOverrides = {
   photoSize: 'M',
   ordinalSize: 'M',
   nameSize: 'M',
+  levelSize: 'M',
+  titleSize: 'M',
   textPosition: 'default',
 };
 
@@ -408,6 +412,8 @@ function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): 
   const photoMul = SIZE_SCALE[overrides.photoSize];
   const ordinalMul = SIZE_SCALE[overrides.ordinalSize];
   const nameMul = SIZE_SCALE[overrides.nameSize];
+  const levelMul = SIZE_SCALE[overrides.levelSize];
+  const titleMul = SIZE_SCALE[overrides.titleSize];
 
   let bottomBaseline = layout.bottomBaseline;
   if (overrides.textPosition === 'higher') bottomBaseline = Math.max(0.86, bottomBaseline - 0.04);
@@ -422,7 +428,8 @@ function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): 
     subjectMaxWidthFrac: Math.min(1.5, layout.subjectMaxWidthFrac * photoMul),
     pBoxFrac: layout.pBoxFrac * ordinalMul,
     nameSizeFrac: layout.nameSizeFrac * nameMul,
-    titleSizeFrac: layout.titleSizeFrac * (0.9 + nameMul * 0.1),
+    levelSizeFrac: layout.levelSizeFrac * levelMul,
+    titleSizeFrac: layout.titleSizeFrac * titleMul,
     bottomBaseline,
   };
 }
@@ -454,6 +461,8 @@ interface RatioLayout {
   pMarginFrac: number;
   /** Student name size as a fraction of layout scale. */
   nameSizeFrac: number;
+  /** Competition level size as a fraction of layout scale. */
+  levelSizeFrac: number;
   /** Competition title size as a fraction of layout scale. */
   titleSizeFrac: number;
   /** Max text block width as a fraction of poster width. */
@@ -480,6 +489,7 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
         pBoxFrac: 0.13,
         pMarginFrac: 0.026,
         nameSizeFrac: 0.068,
+        levelSizeFrac: 0.022,
         titleSizeFrac: 0.02,
         textMaxWidthFrac: 0.9,
         bottomBaseline: 0.94,
@@ -498,6 +508,7 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
         pBoxFrac: 0.14,
         pMarginFrac: 0.034,
         nameSizeFrac: 0.068,
+        levelSizeFrac: 0.022,
         titleSizeFrac: 0.022,
         textMaxWidthFrac: 0.9,
         bottomBaseline: 0.945,
@@ -515,6 +526,7 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
         pBoxFrac: 0.15,
         pMarginFrac: 0.028,
         nameSizeFrac: 0.07,
+        levelSizeFrac: 0.022,
         titleSizeFrac: 0.021,
         textMaxWidthFrac: 0.88,
         bottomBaseline: 0.935,
@@ -533,6 +545,7 @@ function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): Ratio
         pBoxFrac: 0.15,
         pMarginFrac: 0.028,
         nameSizeFrac: 0.07,
+        levelSizeFrac: 0.022,
         titleSizeFrac: 0.021,
         textMaxWidthFrac: 0.88,
         bottomBaseline: 0.935,
@@ -1051,7 +1064,7 @@ function drawBottomStack(
   }
 
   const levelText = level.trim().toUpperCase();
-  const levelSize = Math.round(s * 0.022);
+  const levelSize = Math.round(s * layout.levelSizeFrac);
 
   const titleSize = Math.round(s * layout.titleSizeFrac);
   const titleLineHeight = Math.round(titleSize * 1.35);

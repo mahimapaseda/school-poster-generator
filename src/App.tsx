@@ -60,6 +60,8 @@ export default function App() {
   const [photoSize, setPhotoSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.photoSize);
   const [ordinalSize, setOrdinalSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.ordinalSize);
   const [nameSize, setNameSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.nameSize);
+  const [levelSize, setLevelSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.levelSize);
+  const [titleSize, setTitleSize] = useState<SizePreset>(DEFAULT_LAYOUT_OVERRIDES.titleSize);
   const [textPosition, setTextPosition] = useState<TextPosition>(
     DEFAULT_LAYOUT_OVERRIDES.textPosition,
   );
@@ -141,6 +143,8 @@ export default function App() {
           photoSize,
           ordinalSize,
           nameSize,
+          levelSize,
+          titleSize,
           textPosition,
         },
       });
@@ -164,6 +168,8 @@ export default function App() {
     photoSize,
     ordinalSize,
     nameSize,
+    levelSize,
+    titleSize,
     textPosition,
   ]);
 
@@ -247,6 +253,8 @@ export default function App() {
         photoSize={photoSize}
         ordinalSize={ordinalSize}
         nameSize={nameSize}
+        levelSize={levelSize}
+        titleSize={titleSize}
         textPosition={textPosition}
         onClose={() => setMoreOpen(false)}
         onAspectRatioChange={setAspectRatio}
@@ -257,6 +265,8 @@ export default function App() {
         onPhotoSizeChange={setPhotoSize}
         onOrdinalSizeChange={setOrdinalSize}
         onNameSizeChange={setNameSize}
+        onLevelSizeChange={setLevelSize}
+        onTitleSizeChange={setTitleSize}
         onTextPositionChange={setTextPosition}
       />
 

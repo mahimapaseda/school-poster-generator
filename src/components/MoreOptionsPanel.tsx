@@ -21,6 +21,8 @@ interface MoreOptionsPanelProps {
   photoSize: SizePreset;
   ordinalSize: SizePreset;
   nameSize: SizePreset;
+  levelSize: SizePreset;
+  titleSize: SizePreset;
   textPosition: TextPosition;
   onClose: () => void;
   onAspectRatioChange: (aspectRatio: AspectRatioId) => void;
@@ -31,6 +33,8 @@ interface MoreOptionsPanelProps {
   onPhotoSizeChange: (size: SizePreset) => void;
   onOrdinalSizeChange: (size: SizePreset) => void;
   onNameSizeChange: (size: SizePreset) => void;
+  onLevelSizeChange: (size: SizePreset) => void;
+  onTitleSizeChange: (size: SizePreset) => void;
   onTextPositionChange: (position: TextPosition) => void;
 }
 
@@ -67,6 +71,8 @@ export function MoreOptionsPanel({
   photoSize,
   ordinalSize,
   nameSize,
+  levelSize,
+  titleSize,
   textPosition,
   onClose,
   onAspectRatioChange,
@@ -77,6 +83,8 @@ export function MoreOptionsPanel({
   onPhotoSizeChange,
   onOrdinalSizeChange,
   onNameSizeChange,
+  onLevelSizeChange,
+  onTitleSizeChange,
   onTextPositionChange,
 }: MoreOptionsPanelProps) {
   if (!open) return null;
@@ -180,6 +188,17 @@ export function MoreOptionsPanel({
           <div className="field">
             <span className="field-label">Name size</span>
             <SizeSegmented value={nameSize} onChange={onNameSizeChange} />
+          </div>
+        </div>
+
+        <div className="field-row compact">
+          <div className="field">
+            <span className="field-label">Level size</span>
+            <SizeSegmented value={levelSize} onChange={onLevelSizeChange} />
+          </div>
+          <div className="field">
+            <span className="field-label">Title size</span>
+            <SizeSegmented value={titleSize} onChange={onTitleSizeChange} />
           </div>
         </div>
 
