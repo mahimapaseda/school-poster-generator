@@ -564,6 +564,8 @@ export interface PosterInputs {
   level: string;
   /** Competition title, e.g. "Innovation & Robotic Competition". */
   title: string;
+  /** Category line shown under the title, e.g. "48kg", "Health", "Environment". */
+  category: string;
   placement: Placement;
   aspectRatio: AspectRatioId;
   colorTheme: ColorThemeId;
@@ -1038,6 +1040,7 @@ function wrapText(
  *   STUDENT NAME       (white, large)
  *   ALL ISLAND         (gold)          — tight gap under name
  *   COMPETITION TITLE  (silver)
+ *   CATEGORY           (gold/silver) — optional, below title
  */
 function drawBottomStack(
   ctx: CanvasRenderingContext2D,
@@ -1047,7 +1050,7 @@ function drawBottomStack(
   layout: RatioLayout,
   theme: ColorTheme,
 ): void {
-  const { name, level, title } = inputs;
+  const { name, level, title, category } = inputs;
   const centerX = w / 2;
   const maxTextWidth = w * layout.textMaxWidthFrac;
   const s = layout.scale;
@@ -1076,13 +1079,24 @@ function drawBottomStack(
 
   const gapNameToLevel = Math.round(nameSize * 0.22);
   const gapLevelToTitle = Math.round(nameSize * 0.12);
+  const gapTitleToCategory = Math.round(titleSize * 0.18);
+
+  const hasCategory = category.trim().length > 0;
+  const categorySize = Math.round(titleSize * 0.82);
+  const categoryLineHeight = Math.round(categorySize * 1.25);
+  ctx.font = `600 ${categorySize}px Archivo`;
+  const categoryText = category.trim().toUpperCase();
+  const categoryLines = hasCategory ? wrapText(ctx, categoryText, maxTextWidth, 2) : [];
+  const categoryBlockH = categoryLines.length > 0 ? (categoryLines.length - 1) * categoryLineHeight : 0;
 
   const hasLevel = levelText.length > 0;
   const hasTitle = titleLines.length > 0;
   let stackH = nameSize;
   if (hasLevel) stackH += gapNameToLevel + levelSize;
-  if (hasTitle) {
-    stackH += (hasLevel ? gapLevelToTitle : gapNameToLevel) + titleBlockH + titleSize;
+  const titleStartGap = hasLevel ? gapLevelToTitle : gapNameToLevel;
+  if (hasTitle) stackH += titleStartGap + titleBlockH + titleSize;
+  if (categoryLines.length > 0) {
+    stackH += (hasTitle ? gapTitleToCategory : titleStartGap) + categoryBlockH + categorySize;
   }
 
   const stackBottom = h * layout.bottomBaseline;
@@ -1116,15 +1130,34 @@ function drawBottomStack(
 
   // 3) Competition title
   if (hasTitle) {
-    y += (hasLevel ? gapLevelToTitle : gapNameToLevel) + titleSize;
+    y += titleStartGap + titleSize;
     ctx.font = `600 ${titleSize}px Archivo`;
     ctx.letterSpacing = `${Math.round(s * 0.004)}px`;
     ctx.fillStyle = 'rgba(210, 218, 230, 0.9)';
     ctx.strokeStyle = 'rgba(210, 218, 230, 0.9)';
     ctx.lineWidth = boldStrokeW;
     ctx.lineJoin = 'round';
+    const titleBaseline = y;
     titleLines.forEach((line, i) => {
-      const ty = y + i * titleLineHeight;
+      const ty = titleBaseline + i * titleLineHeight;
+      ctx.strokeText(line, centerX, ty);
+      ctx.fillText(line, centerX, ty);
+    });
+    y = titleBaseline + titleBlockH; // move to last title line baseline
+  }
+
+  // 4) Category (under the title)
+  if (categoryLines.length > 0) {
+    y += (hasTitle ? gapTitleToCategory : titleStartGap) + categorySize;
+    ctx.font = `600 ${categorySize}px Archivo`;
+    ctx.letterSpacing = `${Math.round(s * 0.006)}px`;
+    ctx.fillStyle = theme.accent;
+    ctx.strokeStyle = theme.accent;
+    ctx.lineWidth = boldStrokeW;
+    ctx.lineJoin = 'round';
+    const categoryBaseline = y;
+    categoryLines.forEach((line, i) => {
+      const ty = categoryBaseline + i * categoryLineHeight;
       ctx.strokeText(line, centerX, ty);
       ctx.fillText(line, centerX, ty);
     });

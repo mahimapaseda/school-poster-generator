@@ -7,6 +7,7 @@ interface PosterFormProps {
   name: string;
   level: string;
   title: string;
+  category: string;
   placement: Placement;
   moreOpen: boolean;
   error: string | null;
@@ -15,6 +16,7 @@ interface PosterFormProps {
   onNameChange: (name: string) => void;
   onLevelChange: (level: string) => void;
   onTitleChange: (title: string) => void;
+  onCategoryChange: (category: string) => void;
   onPlacementChange: (placement: Placement) => void;
   onToggleMore: () => void;
   onDownload: () => void;
@@ -45,6 +47,7 @@ export function PosterForm({
   name,
   level,
   title,
+  category,
   placement,
   moreOpen,
   error,
@@ -53,6 +56,7 @@ export function PosterForm({
   onNameChange,
   onLevelChange,
   onTitleChange,
+  onCategoryChange,
   onPlacementChange,
   onToggleMore,
   onDownload,
@@ -175,6 +179,19 @@ export function PosterForm({
             value={title}
             placeholder="e.g. Innovation & Robotic Competition"
             onChange={(event) => onTitleChange(event.target.value)}
+          />
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="competition-category">
+            Category
+          </label>
+          <input
+            id="competition-category"
+            type="text"
+            value={category}
+            placeholder="e.g. 48kg, Health, Environment"
+            onChange={(event) => onCategoryChange(event.target.value)}
           />
         </div>
 

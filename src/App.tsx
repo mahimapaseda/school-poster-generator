@@ -51,6 +51,7 @@ export default function App() {
   const [name, setName] = useState('');
   const [level, setLevel] = useState('');
   const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('');
   const [placement, setPlacement] = useState<Placement>(1);
   const [aspectRatio, setAspectRatio] = useState<AspectRatioId>('4:5');
   const [colorTheme, setColorTheme] = useState<ColorThemeId>('navy');
@@ -133,6 +134,7 @@ export default function App() {
         name,
         level,
         title,
+        category,
         placement,
         aspectRatio,
         colorTheme,
@@ -159,6 +161,7 @@ export default function App() {
     name,
     level,
     title,
+    category,
     placement,
     aspectRatio,
     colorTheme,
@@ -229,6 +232,7 @@ export default function App() {
           name={name}
           level={level}
           title={title}
+          category={category}
           placement={placement}
           moreOpen={moreOpen}
           error={error}
@@ -237,6 +241,7 @@ export default function App() {
           onNameChange={setName}
           onLevelChange={setLevel}
           onTitleChange={setTitle}
+          onCategoryChange={setCategory}
           onPlacementChange={setPlacement}
           onToggleMore={() => setMoreOpen((open) => !open)}
           onDownload={handleDownload}
