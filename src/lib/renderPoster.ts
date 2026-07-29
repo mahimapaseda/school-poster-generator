@@ -392,9 +392,10 @@ export const DEFAULT_LAYOUT_OVERRIDES: LayoutOverrides = {
   textPosition: 50,
 };
 
-/** Map a 0-100 slider value to a multiplier (0→0.5, 50→1.0, 100→1.5). */
+/** Map a 0-100 slider value to a multiplier (0→0.3, 50→1.0, 100→2.0). */
 function sliderToScale(v: number): number {
-  return 0.5 + (v / 100);
+  if (v <= 50) return 0.3 + (v / 50) * 0.7;
+  return 1.0 + ((v - 50) / 50);
 }
 
 function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): RatioLayout {
@@ -405,19 +406,19 @@ function applyLayoutOverrides(layout: RatioLayout, overrides: LayoutOverrides): 
   const levelMul = sliderToScale(overrides.levelSize);
   const titleMul = sliderToScale(overrides.titleSize);
 
-  // textPosition: 0→move up 0.04, 50→no change, 100→move down 0.03
+  // textPosition: 0→move up 0.08, 50→no change, 100→move down 0.06
   const posT = (overrides.textPosition - 50) / 50;
   let bottomBaseline = layout.bottomBaseline;
-  if (posT < 0) bottomBaseline = Math.max(0.86, bottomBaseline + posT * 0.04);
-  if (posT > 0) bottomBaseline = Math.min(0.975, bottomBaseline + posT * 0.03);
+  if (posT < 0) bottomBaseline = Math.max(0.82, bottomBaseline + posT * 0.08);
+  if (posT > 0) bottomBaseline = Math.min(0.99, bottomBaseline + posT * 0.06);
 
   return {
     ...layout,
-    logoMaxWidthFrac: Math.min(1.05, layout.logoMaxWidthFrac * logoMul),
-    logoMaxHeightFrac: Math.min(0.95, layout.logoMaxHeightFrac * logoMul),
-    logoOpacity: Math.min(1, Math.max(0.2, overrides.logoOpacity)),
-    subjectFrac: Math.min(0.98, layout.subjectFrac * photoMul),
-    subjectMaxWidthFrac: Math.min(1.5, layout.subjectMaxWidthFrac * photoMul),
+    logoMaxWidthFrac: Math.min(1.8, layout.logoMaxWidthFrac * logoMul),
+    logoMaxHeightFrac: Math.min(1.6, layout.logoMaxHeightFrac * logoMul),
+    logoOpacity: Math.min(1, Math.max(0.05, overrides.logoOpacity)),
+    subjectFrac: Math.min(1.4, layout.subjectFrac * photoMul),
+    subjectMaxWidthFrac: Math.min(2.5, layout.subjectMaxWidthFrac * photoMul),
     pBoxFrac: layout.pBoxFrac * ordinalMul,
     nameSizeFrac: layout.nameSizeFrac * nameMul,
     levelSizeFrac: layout.levelSizeFrac * levelMul,
