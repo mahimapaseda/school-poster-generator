@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { InstallAppButton } from './components/InstallAppButton';
 import { MoreOptionsPanel } from './components/MoreOptionsPanel';
 import { PosterForm } from './components/PosterForm';
 import {
@@ -187,25 +188,28 @@ export default function App() {
             <h1>Result Poster Generator</h1>
             <p>Upload a photo, set details, download a print-ready poster.</p>
           </div>
-          <div className="theme-toggle" role="group" aria-label="Color mode">
-            <button
-              type="button"
-              className={`theme-toggle-option${uiTheme === 'light' ? ' active' : ''}`}
-              aria-label="Light mode"
-              aria-pressed={uiTheme === 'light'}
-              onClick={() => setUiTheme('light')}
-            >
-              Light
-            </button>
-            <button
-              type="button"
-              className={`theme-toggle-option${uiTheme === 'dark' ? ' active' : ''}`}
-              aria-label="Dark mode"
-              aria-pressed={uiTheme === 'dark'}
-              onClick={() => setUiTheme('dark')}
-            >
-              Dark
-            </button>
+          <div className="panel-header-actions">
+            <InstallAppButton />
+            <div className="theme-toggle" role="group" aria-label="Color mode">
+              <button
+                type="button"
+                className={`theme-toggle-option${uiTheme === 'light' ? ' active' : ''}`}
+                aria-label="Light mode"
+                aria-pressed={uiTheme === 'light'}
+                onClick={() => setUiTheme('light')}
+              >
+                Light
+              </button>
+              <button
+                type="button"
+                className={`theme-toggle-option${uiTheme === 'dark' ? ' active' : ''}`}
+                aria-label="Dark mode"
+                aria-pressed={uiTheme === 'dark'}
+                onClick={() => setUiTheme('dark')}
+              >
+                Dark
+              </button>
+            </div>
           </div>
         </header>
         <PosterForm

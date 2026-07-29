@@ -2,8 +2,18 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0d1a40" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#e8edf7" media="(prefers-color-scheme: light)" />
+    <meta name="description" content="Create print-ready school result posters from a student photo, logo, and placement." />
+    <meta name="application-name" content="Poster Gen" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Poster Gen" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>School Result Poster Generator</title>
     <link rel="preload" href="/fonts/anton-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/archivo-600.woff2" as="font" type="font/woff2" crossorigin />
@@ -19,6 +29,13 @@
                 : 'dark';
           document.documentElement.dataset.theme = theme;
           document.documentElement.style.colorScheme = theme;
+          var metaTheme = document.querySelector('meta[name="theme-color"]:not([media])');
+          if (!metaTheme) {
+            metaTheme = document.createElement('meta');
+            metaTheme.setAttribute('name', 'theme-color');
+            document.head.appendChild(metaTheme);
+          }
+          metaTheme.setAttribute('content', theme === 'light' ? '#e8edf7' : '#0d1a40');
         } catch (e) {}
       })();
     </script>

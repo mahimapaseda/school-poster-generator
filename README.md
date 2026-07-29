@@ -30,9 +30,22 @@ npm run build
 npm run preview
 ```
 
+## Install as an app (PWA)
+
+After `npm run build && npm run preview` (or deploying over HTTPS):
+
+1. Open the app in Chrome / Edge.
+2. Click **Install app** in the sidebar (or use the browser install icon in the address bar).
+3. Launch **Poster Gen** from your desktop / Start menu / home screen — it opens fullscreen like a native app.
+
+On iPhone/iPad: Safari → Share → **Add to Home Screen**.
+
+The service worker caches the app shell and fonts for faster launches. The background-removal model still downloads on first photo processing (~40 MB).
+
 ## Tech
 
 - Vite + React + TypeScript
+- Progressive Web App (`vite-plugin-pwa`) — installable, standalone display
 - Canvas 2D compositing (`src/lib/renderPoster.ts`)
 - Browser background removal (`src/lib/removeBackground.ts`)
 - Self-hosted fonts: Anton (placement numeral) and Archivo (name strip) in `public/fonts/`
