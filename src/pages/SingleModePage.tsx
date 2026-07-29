@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { InstallAppButton } from './components/InstallAppButton';
-import { MoreOptionsPanel } from './components/MoreOptionsPanel';
-import { PosterForm } from './components/PosterForm';
+import { Link } from 'react-router-dom';
+import { InstallAppButton } from '../components/InstallAppButton';
+import { MoreOptionsPanel } from '../components/MoreOptionsPanel';
+import { PosterForm } from '../components/PosterForm';
 import {
   ensureFonts,
   getAspectRatio,
@@ -11,35 +12,11 @@ import {
   type ColorThemeId,
   type PatternId,
   type Placement,
-} from './lib/renderPoster';
-import { getCutout, preloadCutoutModel, trimTransparent } from './lib/removeBackground';
+} from '../lib/renderPoster';
+import { getCutout, preloadCutoutModel, trimTransparent } from '../lib/removeBackground';
+import { applyUiTheme, initialUiTheme, type UiTheme } from '../lib/uiTheme';
 
-type UiTheme = 'light' | 'dark';
-
-function readStoredTheme(): UiTheme {
-  try {
-    const stored = localStorage.getItem('poster-ui-theme');
-    if (stored === 'light' || stored === 'dark') return stored;
-  } catch {
-    /* ignore */
-  }
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
-    return 'light';
-  }
-  return 'dark';
-}
-
-function applyUiTheme(theme: UiTheme) {
-  document.documentElement.dataset.theme = theme;
-  document.documentElement.style.colorScheme = theme;
-  try {
-    localStorage.setItem('poster-ui-theme', theme);
-  } catch {
-    /* ignore */
-  }
-}
-
-export default function App() {
+export default function SingleModePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [rawPhoto, setRawPhoto] = useState<ImageBitmap | null>(null);
@@ -65,13 +42,7 @@ export default function App() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uiTheme, setUiTheme] = useState<UiTheme>(() => {
-    if (typeof document !== 'undefined') {
-      const current = document.documentElement.dataset.theme;
-      if (current === 'light' || current === 'dark') return current;
-    }
-    return readStoredTheme();
-  });
+  const [uiTheme, setUiTheme] = useState<UiTheme>(initialUiTheme);
 
   useEffect(() => {
     applyUiTheme(uiTheme);
@@ -193,7 +164,6 @@ export default function App() {
 
   return (
     <div className={`app${moreOpen ? ' more-open' : ''}`}>
-      {/* Mobile toolbar — visible only on <=900px via CSS */}
       <div className="mobile-toolbar">
         <button
           type="button"
@@ -205,8 +175,11 @@ export default function App() {
           <span className="hamburger-line" />
           <span className="hamburger-line" />
         </button>
-        <span className="mobile-toolbar-title">Poster Generator</span>
+        <span className="mobile-toolbar-title">Single Mode</span>
         <div className="mobile-toolbar-actions">
+          <Link to="/" className="home-nav-link compact" aria-label="Back to Home">
+            Home
+          </Link>
           <div className="theme-toggle compact" role="group" aria-label="Color mode">
             <button
               type="button"
@@ -239,14 +212,14 @@ export default function App() {
         </div>
       </div>
 
-      {/* Backdrop for mobile drawer */}
-      {menuOpen && (
-        <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
-      )}
+      {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
 
       <aside className={`panel${menuOpen ? ' menu-open' : ''}`}>
         <header className="panel-header">
           <div className="panel-header-text">
+            <Link to="/" className="home-nav-link">
+              ← Home
+            </Link>
             <h1>Result Poster Generator</h1>
             <p>Upload a photo, set details, download a print-ready poster.</p>
           </div>
