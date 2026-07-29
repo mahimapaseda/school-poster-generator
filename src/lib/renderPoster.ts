@@ -1051,6 +1051,7 @@ function drawBottomStack(
   const centerX = w / 2;
   const maxTextWidth = w * layout.textMaxWidthFrac;
   const s = layout.scale;
+  const boldStrokeW = Math.max(1, Math.round(s * 0.0007));
 
   ctx.save();
   ctx.textAlign = 'center';
@@ -1106,6 +1107,10 @@ function drawBottomStack(
     ctx.font = `600 ${levelSize}px Archivo`;
     ctx.letterSpacing = `${Math.round(s * 0.008)}px`;
     ctx.fillStyle = theme.accent;
+    ctx.strokeStyle = theme.accent;
+    ctx.lineWidth = boldStrokeW;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(levelText, centerX, y);
     ctx.fillText(levelText, centerX, y);
   }
 
@@ -1115,8 +1120,13 @@ function drawBottomStack(
     ctx.font = `600 ${titleSize}px Archivo`;
     ctx.letterSpacing = `${Math.round(s * 0.004)}px`;
     ctx.fillStyle = 'rgba(210, 218, 230, 0.9)';
+    ctx.strokeStyle = 'rgba(210, 218, 230, 0.9)';
+    ctx.lineWidth = boldStrokeW;
+    ctx.lineJoin = 'round';
     titleLines.forEach((line, i) => {
-      ctx.fillText(line, centerX, y + i * titleLineHeight);
+      const ty = y + i * titleLineHeight;
+      ctx.strokeText(line, centerX, ty);
+      ctx.fillText(line, centerX, ty);
     });
   }
 
