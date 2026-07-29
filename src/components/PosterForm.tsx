@@ -184,7 +184,7 @@ export function PosterForm({
           <input type="file" accept="image/*" onChange={handleLogoInput} hidden />
           {logoLabel ?? 'Choose logo image'}
         </label>
-        <span className="field-hint">Shown in the top-left corner. Transparent PNG works best.</span>
+        <span className="field-hint">Shown large behind the student. Transparent PNG works best.</span>
       </div>
 
       <div className="field">

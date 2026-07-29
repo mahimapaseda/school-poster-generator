@@ -1,6 +1,6 @@
 # School Result Poster Generator
 
-A client-side web app that turns a student photo, a placement (1st / 2nd / 3rd), a school logo, and a name into a high-resolution result poster with a fixed F1-style design: a giant "P1" / "P2" / "P3" behind a cutout of the student on a dark navy textured background, with the logo and name in a footer strip.
+A client-side web app that turns a student photo, a placement (1st / 2nd / 3rd), a school logo, and a name into a high-resolution result poster with a fixed F1-style design: a giant school logo behind a cutout of the student on a dark navy textured background, with the placement (1ˢᵗ / 2ⁿᵈ / 3ʳᵈ) in the top-left corner and the name in a footer strip.
 
 Everything runs in the browser — the photo background is removed locally with [`@imgly/background-removal`](https://github.com/imgly/background-removal-js) (WASM), and the poster is composed on a 2048x2560 canvas and exported as PNG. No server, no uploads.
 
@@ -19,7 +19,7 @@ Open the printed URL (default http://localhost:5173).
 2. Pick the placement (1st, 2nd, or 3rd place).
 3. Open **More options** to choose image ratio (`4:5`, `3:4`, `1:1`, or `9:16`), color theme (Navy, Emerald, Crimson, Charcoal, Violet, Ocean, Sunset, Forest, Gold, Slate, Rose, Teal, Midnight, Maroon), and background pattern (Pixels, Dots, Lines, Grid, or None).
 4. Enter the **Level** (e.g. "All Island", "Central Province") and **Title** (e.g. "Innovation & Robotic Competition", "Music Competition").
-5. Upload the school logo (transparent PNG recommended) — shown in the top-left corner.
+5. Upload the school logo (transparent PNG recommended) — shown large behind the student.
 6. Type the student name.
 7. Click **Download poster (PNG)** — the exported file is named `poster-<name>-P<n>-<ratio>.png`.
 

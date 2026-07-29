@@ -211,28 +211,30 @@ export function getColorTheme(id: ColorThemeId): ColorTheme {
 }
 
 /**
- * Layout knobs that change with aspect ratio so photo, numeral, logo, and
- * text stay balanced when the user switches 4:5 / 3:4 / 1:1 / 9:16.
+ * Layout knobs per aspect ratio. Logo uses a large contain-fit box so the
+ * crest fills the upper poster like the old giant P-mark, scaled per ratio.
  */
 interface RatioLayout {
   /** Geometric-mean scale for text/logo sizes. */
   scale: number;
-  /** Max visual width of the P-numeral as a fraction of poster width. */
-  pMaxWidthFrac: number;
-  /** Max visual height of the P-numeral as a fraction of poster height. */
-  pMaxHeightFrac: number;
-  /** Vertical center of the P-numeral (0–1). */
-  pCenterY: number;
+  /** Max visual width of the large centered logo as a fraction of poster width. */
+  logoMaxWidthFrac: number;
+  /** Max visual height of the large centered logo as a fraction of poster height. */
+  logoMaxHeightFrac: number;
+  /** Vertical center of the large logo (0–1). */
+  logoCenterY: number;
+  /** Opacity of the large logo watermark (0–1). */
+  logoOpacity: number;
   /** Subject height as a fraction of poster height. */
   subjectFrac: number;
   /** Subject max width as a fraction of poster width. */
   subjectMaxWidthFrac: number;
   /** Where the bottom dark fade starts (0–1). */
   fadeTop: number;
-  /** Corner logo box as a fraction of layout scale. */
-  logoBoxFrac: number;
-  /** Corner logo margin from edges as a fraction of layout scale. */
-  logoMarginFrac: number;
+  /** Corner P-numeral box as a fraction of layout scale. */
+  pBoxFrac: number;
+  /** Corner P margin from edges as a fraction of layout scale. */
+  pMarginFrac: number;
   /** Student name size as a fraction of layout scale. */
   nameSizeFrac: number;
   /** Competition title size as a fraction of layout scale. */
@@ -243,64 +245,82 @@ interface RatioLayout {
   bottomBaseline: number;
 }
 
-function getRatioLayout(w: number, h: number): RatioLayout {
-  const aspect = w / h;
+function getRatioLayout(w: number, h: number, aspectRatio: AspectRatioId): RatioLayout {
   const scale = Math.sqrt(w * h);
 
-  // Square (1:1)
-  if (aspect > 0.92 && aspect < 1.08) {
-    return {
-      scale,
-      pMaxWidthFrac: 0.72,
-      pMaxHeightFrac: 0.48,
-      pCenterY: 0.33,
-      subjectFrac: 0.68,
-      subjectMaxWidthFrac: 0.88,
-      fadeTop: 0.68,
-      logoBoxFrac: 0.09,
-      logoMarginFrac: 0.028,
-      nameSizeFrac: 0.062,
-      titleSizeFrac: 0.019,
-      textMaxWidthFrac: 0.9,
-      bottomBaseline: 0.965,
-    };
+  switch (aspectRatio) {
+    case '1:1':
+      // Square — large crest fills most of the upper half.
+      return {
+        scale,
+        logoMaxWidthFrac: 0.92,
+        logoMaxHeightFrac: 0.78,
+        logoCenterY: 0.4,
+        logoOpacity: 0.42,
+        subjectFrac: 0.82,
+        subjectMaxWidthFrac: 0.98,
+        fadeTop: 0.7,
+        pBoxFrac: 0.14,
+        pMarginFrac: 0.024,
+        nameSizeFrac: 0.062,
+        titleSizeFrac: 0.019,
+        textMaxWidthFrac: 0.9,
+        bottomBaseline: 0.965,
+      };
+    case '9:16':
+      // Tall story — almost full width, capped height so it sits above the fade.
+      return {
+        scale,
+        logoMaxWidthFrac: 0.96,
+        logoMaxHeightFrac: 0.58,
+        logoCenterY: 0.32,
+        logoOpacity: 0.4,
+        subjectFrac: 0.84,
+        subjectMaxWidthFrac: 1.0,
+        fadeTop: 0.76,
+        pBoxFrac: 0.16,
+        pMarginFrac: 0.032,
+        nameSizeFrac: 0.072,
+        titleSizeFrac: 0.023,
+        textMaxWidthFrac: 0.9,
+        bottomBaseline: 0.968,
+      };
+    case '3:4':
+      return {
+        scale,
+        logoMaxWidthFrac: 0.94,
+        logoMaxHeightFrac: 0.7,
+        logoCenterY: 0.36,
+        logoOpacity: 0.42,
+        subjectFrac: 0.86,
+        subjectMaxWidthFrac: 0.98,
+        fadeTop: 0.74,
+        pBoxFrac: 0.15,
+        pMarginFrac: 0.028,
+        nameSizeFrac: 0.07,
+        titleSizeFrac: 0.021,
+        textMaxWidthFrac: 0.88,
+        bottomBaseline: 0.968,
+      };
+    case '4:5':
+    default:
+      return {
+        scale,
+        logoMaxWidthFrac: 0.94,
+        logoMaxHeightFrac: 0.72,
+        logoCenterY: 0.38,
+        logoOpacity: 0.42,
+        subjectFrac: 0.86,
+        subjectMaxWidthFrac: 0.98,
+        fadeTop: 0.74,
+        pBoxFrac: 0.15,
+        pMarginFrac: 0.028,
+        nameSizeFrac: 0.07,
+        titleSizeFrac: 0.021,
+        textMaxWidthFrac: 0.88,
+        bottomBaseline: 0.968,
+      };
   }
-
-  // Tall story (9:16)
-  if (aspect < 0.65) {
-    return {
-      scale,
-      pMaxWidthFrac: 0.82,
-      pMaxHeightFrac: 0.55,
-      pCenterY: 0.31,
-      subjectFrac: 0.72,
-      subjectMaxWidthFrac: 0.92,
-      fadeTop: 0.74,
-      logoBoxFrac: 0.11,
-      logoMarginFrac: 0.038,
-      nameSizeFrac: 0.072,
-      titleSizeFrac: 0.023,
-      textMaxWidthFrac: 0.9,
-      bottomBaseline: 0.968,
-    };
-  }
-
-  // Portrait (4:5 ≈ 0.8, 3:4 = 0.75)
-  return {
-    scale,
-    pMaxWidthFrac: 0.86,
-    pMaxHeightFrac: 0.58,
-    pCenterY: 0.345,
-    subjectFrac: 0.74,
-    subjectMaxWidthFrac: 0.9,
-    fadeTop: 0.72,
-    logoBoxFrac: 0.1,
-    logoMarginFrac: 0.032,
-    nameSizeFrac: 0.07,
-    titleSizeFrac: 0.021,
-    textMaxWidthFrac: 0.88,
-    bottomBaseline: 0.968,
-  };
 }
 
 export interface PosterInputs {
@@ -453,71 +473,76 @@ function drawBackground(
   ctx.fillRect(0, 0, w, h);
 }
 
-function drawPlacementText(
+const PLACEMENT_ORDINALS: Record<Placement, { digit: string; suffix: string }> = {
+  1: { digit: '1', suffix: 'st' },
+  2: { digit: '2', suffix: 'nd' },
+  3: { digit: '3', suffix: 'rd' },
+};
+
+/** Placement ordinal (1ˢᵗ / 2ⁿᵈ / 3ʳᵈ) in the top-left corner. */
+function drawPlacementCorner(
   ctx: CanvasRenderingContext2D,
   placement: Placement,
   w: number,
-  h: number,
+  _h: number,
   layout: RatioLayout,
 ): void {
-  const text = `P${placement}`;
-  const maxWidth = w * layout.pMaxWidthFrac;
-  const maxHeight = h * layout.pMaxHeightFrac;
+  const { digit, suffix } = PLACEMENT_ORDINALS[placement];
+  // Wider/taller slot than the old "P#" mark so "1st" can render large.
+  const box = Math.min(Math.round(layout.scale * layout.pBoxFrac * 1.25), Math.round(w * 0.26));
+  const marginX = Math.round(layout.scale * layout.pMarginFrac);
+  const marginY = Math.round(layout.scale * layout.pMarginFrac * 1.05);
 
   ctx.save();
-  let size = Math.round(layout.scale * 0.72);
-  ctx.font = `400 ${size}px Anton`;
+  let digitSize = Math.round(box * 1.05);
+  const suffixRatio = 0.42;
 
-  // Fit using the true glyph bounds (Anton overhangs its advance width).
-  const fitSize = (candidate: number) => {
-    ctx.font = `400 ${candidate}px Anton`;
-    const m = ctx.measureText(text);
-    const glyphH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
-    // Anton’s ink is wider than its advance width; pad so we never clip.
-    const glyphW = Math.max(
-      m.width * 1.18,
-      (m.actualBoundingBoxLeft || 0) + (m.actualBoundingBoxRight || 0),
+  const measure = (size: number) => {
+    ctx.font = `400 ${size}px Anton`;
+    const dm = ctx.measureText(digit);
+    const digitH = dm.actualBoundingBoxAscent + dm.actualBoundingBoxDescent;
+    const digitW = Math.max(
+      dm.width,
+      (dm.actualBoundingBoxLeft || 0) + (dm.actualBoundingBoxRight || 0),
     );
-    return { metrics: m, glyphH, glyphW };
+    const suffixSize = Math.round(size * suffixRatio);
+    ctx.font = `400 ${suffixSize}px Anton`;
+    const sm = ctx.measureText(suffix);
+    const suffixW = sm.width;
+    const gap = size * 0.04;
+    return { digitH, digitW, suffixSize, suffixW, gap, totalW: digitW + gap + suffixW, dm };
   };
 
-  let { metrics, glyphH: glyphHeight, glyphW } = fitSize(size);
-  const scale = Math.min(1, maxWidth / Math.max(1, glyphW), maxHeight / Math.max(1, glyphHeight));
-  if (scale < 1) {
-    size = Math.floor(size * scale);
-    ({ metrics, glyphH: glyphHeight, glyphW } = fitSize(size));
+  let m = measure(digitSize);
+  const fit = Math.min(1, box / Math.max(1, m.totalW), box / Math.max(1, m.digitH));
+  if (fit < 1) {
+    digitSize = Math.floor(digitSize * fit);
+    m = measure(digitSize);
   }
 
-  // Hard cap: keep ink inside a side inset so the P never clips the canvas edge.
-  const inset = w * 0.06;
-  const halfSpan = Math.max(metrics.width * 0.59, glyphW / 2);
-  const maxHalf = w / 2 - inset;
-  if (halfSpan > maxHalf) {
-    size = Math.floor(size * (maxHalf / halfSpan));
-    ({ metrics, glyphH: glyphHeight } = fitSize(size));
-  }
+  const top = marginY + (box - m.digitH) / 2;
+  const digitBaseline = top + m.dm.actualBoundingBoxAscent;
+  // Raise the suffix so it sits near the top of the digit (true superscript).
+  const suffixBaseline = top + m.digitH * 0.38;
+  const digitX = marginX;
+  const suffixX = digitX + m.digitW + m.gap;
 
-  // Soft shadow shouldn't spill past the canvas edge.
-  const pad = Math.round(layout.scale * 0.02);
-  const centerY = h * layout.pCenterY;
-  const baselineY =
-    centerY + (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2;
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-  ctx.shadowBlur = Math.min(Math.round(layout.scale * 0.03), pad);
-  ctx.shadowOffsetY = Math.round(layout.scale * 0.01);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = Math.round(layout.scale * 0.012);
+  ctx.shadowOffsetY = Math.round(layout.scale * 0.004);
 
-  const fill = ctx.createLinearGradient(
-    0,
-    centerY - glyphHeight / 2,
-    0,
-    centerY + glyphHeight / 2,
-  );
+  const fill = ctx.createLinearGradient(0, top, 0, top + m.digitH);
   fill.addColorStop(0, '#ffffff');
   fill.addColorStop(1, '#c9d4ea');
   ctx.fillStyle = fill;
-  ctx.fillText(text, w / 2, baselineY);
+
+  ctx.font = `400 ${digitSize}px Anton`;
+  ctx.fillText(digit, digitX, digitBaseline);
+
+  ctx.font = `400 ${m.suffixSize}px Anton`;
+  ctx.fillText(suffix, suffixX, suffixBaseline);
   ctx.restore();
 }
 
@@ -550,25 +575,38 @@ function drawSubject(
   ctx.restore();
 }
 
-/** School logo in the top-left corner (fully opaque, contain-fit in a fixed slot). */
-function drawLogoCorner(
+/** Large school logo — contain-fit inside a per-ratio box, centered on the poster. */
+function drawLogoMark(
   ctx: CanvasRenderingContext2D,
   logo: ImageBitmap | null,
   w: number,
-  _h: number,
+  h: number,
   layout: RatioLayout,
 ): void {
   if (!logo) return;
 
-  // Cap logo by both layout scale and a fraction of width so it never covers the P.
-  const box = Math.min(Math.round(layout.scale * layout.logoBoxFrac), Math.round(w * 0.14));
-  const marginX = Math.round(layout.scale * layout.logoMarginFrac);
-  const marginY = Math.round(layout.scale * layout.logoMarginFrac * 1.1);
-  const fit = Math.min(box / logo.width, box / logo.height);
+  const maxWidth = w * layout.logoMaxWidthFrac;
+  const maxHeight = h * layout.logoMaxHeightFrac;
+  // Contain-fit: use the full allotted box for this ratio (not a forced square).
+  const fit = Math.min(maxWidth / logo.width, maxHeight / logo.height);
   const lw = logo.width * fit;
   const lh = logo.height * fit;
 
-  ctx.drawImage(logo, marginX + (box - lw) / 2, marginY + (box - lh) / 2, lw, lh);
+  // Keep the mark inside the upper poster — clamp so it never sits under the fade.
+  const idealCenterY = h * layout.logoCenterY;
+  const minCenterY = lh / 2 + h * 0.02;
+  const maxCenterY = h * layout.fadeTop - lh / 2;
+  const centerY = Math.min(Math.max(idealCenterY, minCenterY), Math.max(minCenterY, maxCenterY));
+  const x = (w - lw) / 2;
+  const y = centerY - lh / 2;
+
+  ctx.save();
+  ctx.globalAlpha = layout.logoOpacity;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+  ctx.shadowBlur = Math.round(layout.scale * 0.022);
+  ctx.shadowOffsetY = Math.round(layout.scale * 0.006);
+  ctx.drawImage(logo, x, y, lw, lh);
+  ctx.restore();
 }
 
 function drawBottomFade(
@@ -726,13 +764,13 @@ export function renderPoster(canvas: HTMLCanvasElement, inputs: PosterInputs): v
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const layout = getRatioLayout(width, height);
+  const layout = getRatioLayout(width, height, inputs.aspectRatio);
   const theme = getColorTheme(inputs.colorTheme);
 
   drawBackground(ctx, width, height, theme, inputs.pattern);
-  drawPlacementText(ctx, inputs.placement, width, height, layout);
+  drawLogoMark(ctx, inputs.logo, width, height, layout);
   drawSubject(ctx, inputs, width, height, layout);
   drawBottomFade(ctx, width, height, layout, theme);
   drawBottomStack(ctx, inputs, width, height, layout, theme);
-  drawLogoCorner(ctx, inputs.logo, width, height, layout);
+  drawPlacementCorner(ctx, inputs.placement, width, height, layout);
 }
