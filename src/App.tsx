@@ -98,7 +98,8 @@ export default function App() {
       .then((bitmap) => {
         if (!cancelled) setCutout(bitmap);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('[cutout]', err);
         if (!cancelled) setError('Background removal failed — using the original photo.');
       })
       .finally(() => {

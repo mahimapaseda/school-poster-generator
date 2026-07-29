@@ -7,15 +7,30 @@ let preloadPromise: Promise<void> | null = null;
 /** Long-edge cap before inference — large phone photos are the main slowdown. */
 const MAX_INFERENCE_EDGE = 1280;
 
-const REMOVAL_CONFIG: Config = {
-  // Quantized model (~40 MB): faster download + inference than fp16/full.
-  model: 'isnet_quint8',
-  // WebGPU when available (falls back inside the library).
-  device: 'gpu',
-  // Keep the UI thread responsive while ONNX runs.
-  proxyToWorker: true,
-  output: { format: 'image/png' },
-};
+const PUBLIC_PATH =
+  'https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/';
+
+function baseConfig(overrides: Partial<Config> = {}): Config {
+  return {
+    publicPath: PUBLIC_PATH,
+    // Quantized model (~40 MB): faster download + inference.
+    model: 'isnet_quint8',
+    // CPU is the reliable default online; GPU is attempted separately when available.
+    device: 'cpu',
+    // Workers + COEP/PWA often break model fetches on production hosts.
+    proxyToWorker: false,
+    fetchArgs: {
+      mode: 'cors',
+      credentials: 'omit',
+    },
+    output: { format: 'image/png' },
+    ...overrides,
+  };
+}
+
+function supportsWebGpu(): boolean {
+  return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
 
 /**
  * Warm the segmentation model as soon as the app loads so the first photo
@@ -23,8 +38,8 @@ const REMOVAL_CONFIG: Config = {
  */
 export function preloadCutoutModel(): Promise<void> {
   if (!preloadPromise) {
-    preloadPromise = preload(REMOVAL_CONFIG).catch(() => {
-      // Allow a later getCutout attempt; clear so preload can retry.
+    preloadPromise = preload(baseConfig()).catch((err) => {
+      console.warn('[cutout] model preload failed', err);
       preloadPromise = null;
     });
   }
@@ -79,7 +94,6 @@ export async function trimTransparent(bitmap: ImageBitmap): Promise<ImageBitmap>
   ctx.drawImage(bitmap, 0, 0);
   const { data, width, height } = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
 
-  // Coarse scan (stride 4) then refine edges — much faster on large cutouts.
   const stride = 4;
   let minX = width;
   let minY = height;
@@ -102,7 +116,6 @@ export async function trimTransparent(bitmap: ImageBitmap): Promise<ImageBitmap>
   maxX = Math.min(width - 1, maxX + stride);
   maxY = Math.min(height - 1, maxY + stride);
 
-  // Refine within the coarse box at full resolution.
   let rMinX = maxX;
   let rMinY = maxY;
   let rMaxX = minX;
@@ -136,7 +149,6 @@ async function autoAdjust(bitmap: ImageBitmap): Promise<ImageBitmap> {
   const image = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
   const d = image.data;
 
-  // Sample luminance for the histogram (every 4th pixel) — enough for percentiles.
   const hist = new Uint32Array(256);
   let count = 0;
   for (let i = 0; i < d.length; i += 16) {
@@ -177,6 +189,27 @@ async function autoAdjust(bitmap: ImageBitmap): Promise<ImageBitmap> {
   return createImageBitmap(canvas);
 }
 
+async function runRemoval(input: Blob | File): Promise<ImageBitmap> {
+  const attempts: Config[] = [];
+  if (supportsWebGpu()) {
+    attempts.push(baseConfig({ device: 'gpu' }));
+  }
+  attempts.push(baseConfig({ device: 'cpu' }));
+
+  let lastError: unknown;
+  for (const config of attempts) {
+    try {
+      const blob = await removeBackground(input, config);
+      const bitmap = await createImageBitmap(blob);
+      return autoAdjust(await trimTransparent(bitmap));
+    } catch (err) {
+      lastError = err;
+      console.warn('[cutout] removal attempt failed', config.device, err);
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Background removal failed');
+}
+
 /**
  * Removes the background from a photo, returning a transparent cutout
  * trimmed to the subject's bounds and auto-adjusted to match the poster style.
@@ -186,20 +219,15 @@ export function getCutout(file: File): Promise<ImageBitmap> {
   if (file === lastFile && lastResult) return lastResult;
   lastFile = file;
   lastResult = (async () => {
-    await preloadCutoutModel();
-    const input = await prepareForInference(file);
     try {
-      const blob = await removeBackground(input, REMOVAL_CONFIG);
-      const bitmap = await createImageBitmap(blob);
-      return autoAdjust(await trimTransparent(bitmap));
-    } catch {
-      // GPU path can fail on some devices — retry once on CPU.
-      const blob = await removeBackground(input, {
-        ...REMOVAL_CONFIG,
-        device: 'cpu',
-      });
-      const bitmap = await createImageBitmap(blob);
-      return autoAdjust(await trimTransparent(bitmap));
+      await preloadCutoutModel();
+      const input = await prepareForInference(file);
+      return await runRemoval(input);
+    } catch (err) {
+      // Allow a later retry with the same file after a failure.
+      lastFile = null;
+      lastResult = null;
+      throw err;
     }
   })();
   return lastResult;

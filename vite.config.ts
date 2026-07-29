@@ -2,10 +2,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// Cross-origin isolation enables multi-threaded WASM for background removal.
+// Cross-origin isolation for SharedArrayBuffer / WASM.
+// credentialless allows the IMG.LY model CDN to load under COEP (require-corp
+// often breaks production background removal when a service worker is active).
 const isolationHeaders = {
   'Cross-Origin-Opener-Policy': 'same-origin',
-  'Cross-Origin-Embedder-Policy': 'require-corp',
+  'Cross-Origin-Embedder-Policy': 'credentialless',
+  'Cross-Origin-Resource-Policy': 'cross-origin',
 };
 
 export default defineConfig({
@@ -59,9 +62,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Keep the app shell + fonts online-ready; WASM/model assets stay network-first.
+        // App shell only — never precache huge WASM/ONNX payloads.
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/assets\//, /\.wasm$/i, /^\/icons\//, /^\/fonts\//],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === 'font',
@@ -70,6 +74,11 @@ export default defineConfig({
               cacheName: 'poster-fonts',
               expiration: { maxEntries: 8, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
+          },
+          {
+            // Let the browser fetch IMG.LY models directly (COEP-safe CORS).
+            urlPattern: ({ url }) => url.hostname === 'staticimgly.com',
+            handler: 'NetworkOnly',
           },
         ],
       },
