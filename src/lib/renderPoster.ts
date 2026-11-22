@@ -1,4 +1,4 @@
-export type Placement = 1 | 2 | 3;
+export type Placement = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export type AspectRatioId = '4:5' | '3:4' | '1:1' | '9:16';
 export type ColorThemeId =
@@ -855,9 +855,16 @@ const PLACEMENT_ORDINALS: Record<Placement, { digit: string; suffix: string }> =
   1: { digit: '1', suffix: 'st' },
   2: { digit: '2', suffix: 'nd' },
   3: { digit: '3', suffix: 'rd' },
+  4: { digit: '4', suffix: 'th' },
+  5: { digit: '5', suffix: 'th' },
+  6: { digit: '6', suffix: 'th' },
+  7: { digit: '7', suffix: 'th' },
+  8: { digit: '8', suffix: 'th' },
+  9: { digit: '9', suffix: 'th' },
+  10: { digit: '10', suffix: 'th' },
 };
 
-/** Placement ordinal (1ˢᵗ / 2ⁿᵈ / 3ʳᵈ) in the top-left corner. */
+/** Placement ordinal (1ˢᵗ–10ᵗʰ) in the top-left corner. */
 function drawPlacementCorner(
   ctx: CanvasRenderingContext2D,
   placement: Placement,
@@ -866,8 +873,9 @@ function drawPlacementCorner(
   layout: RatioLayout,
 ): void {
   const { digit, suffix } = PLACEMENT_ORDINALS[placement];
-  // Wider/taller slot than the old "P#" mark so "1st" can render large.
+  // Wider/taller slot than the old "P#" mark so "1st" through "10th" can render large.
   const box = Math.min(Math.round(layout.scale * layout.pBoxFrac * 1.25), Math.round(w * 0.26));
+  const boxW = Math.min(Math.round(box * 1.35), Math.round(w * 0.35));
   const marginX = Math.round(layout.scale * layout.pMarginFrac * 1.85);
   const marginY = Math.round(layout.scale * layout.pMarginFrac * 1.05);
 
@@ -892,7 +900,7 @@ function drawPlacementCorner(
   };
 
   let m = measure(digitSize);
-  const fit = Math.min(1, box / Math.max(1, m.totalW), box / Math.max(1, m.digitH));
+  const fit = Math.min(1, boxW / Math.max(1, m.totalW), box / Math.max(1, m.digitH));
   if (fit < 1) {
     digitSize = Math.floor(digitSize * fit);
     m = measure(digitSize);
