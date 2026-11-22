@@ -25,7 +25,7 @@ function emptyReport(placement: number): PersonSlotReport {
     subject: null,
     subjectIsCutout: false,
     name: '',
-    placement: Math.min(8, Math.max(1, placement)) as PersonSlotReport['placement'],
+    placement: Math.min(10, Math.max(1, placement)) as PersonSlotReport['placement'],
     hasPhoto: false,
     processing: false,
     error: null,
@@ -250,7 +250,7 @@ export default function MultipleModePage() {
               ← Home
             </Link>
             <h1>Multiple Mode</h1>
-            <p>Race-style poster for 2–8 people on one image.</p>
+            <p>Race-style poster for 2–10 people on one image.</p>
           </div>
           <div className="panel-header-actions">
             <InstallAppButton />

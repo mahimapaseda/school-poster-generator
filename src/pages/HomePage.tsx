@@ -48,7 +48,7 @@ export default function HomePage() {
           </Link>
           <Link to="/multiple" className="home-mode home-mode-multiple">
             <span className="home-mode-label">Multiple Mode</span>
-            <span className="home-mode-desc">2–8 people, Race-style poster</span>
+            <span className="home-mode-desc">2–10 people, Race-style poster</span>
           </Link>
         </div>
       </main>

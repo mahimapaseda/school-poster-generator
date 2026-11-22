@@ -13,14 +13,14 @@ import {
   type PatternId,
 } from './renderPoster';
 
-/** Multi Mode placement 1–8 (independent of Single Mode Placement 1–3). */
-export type MultiPlacement = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+/** Multi Mode placement 1–10 (independent of Single Mode Placement 1–3). */
+export type MultiPlacement = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
-export type PersonCount = 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type PersonCount = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
-export const PERSON_COUNTS: PersonCount[] = [2, 3, 4, 5, 6, 7, 8];
+export const PERSON_COUNTS: PersonCount[] = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-export const MULTI_PLACEMENTS: MultiPlacement[] = [1, 2, 3, 4, 5, 6, 7, 8];
+export const MULTI_PLACEMENTS: MultiPlacement[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 export function multiPlacementOrdinal(placement: MultiPlacement): { digit: string; suffix: string } {
   const digit = String(placement);
@@ -65,12 +65,13 @@ function shortName(full: string): string {
   return (parts[0] || trimmed).toUpperCase();
 }
 
-/** Shrink photos/boxes as headcount grows so 8 still fits. */
+/** Shrink photos/boxes as headcount grows so up to 10 still fits. */
 function countScale(n: number): number {
   if (n <= 2) return 1;
   if (n <= 4) return 0.85;
   if (n <= 6) return 0.7;
-  return 0.58;
+  if (n <= 8) return 0.58;
+  return 0.5;
 }
 
 function drawHeaderText(
@@ -321,7 +322,7 @@ function drawResultBox(
 }
 
 /**
- * Race-style multi-person poster (2–8): shared header, alternating L/R cutouts,
+ * Race-style multi-person poster (2–10): shared header, alternating L/R cutouts,
  * stacked center placement boxes.
  */
 export function renderMultiPoster(canvas: HTMLCanvasElement, inputs: MultiPosterInputs): void {
@@ -331,7 +332,7 @@ export function renderMultiPoster(canvas: HTMLCanvasElement, inputs: MultiPoster
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const people = inputs.people.slice(0, 8);
+  const people = inputs.people.slice(0, 10);
   const n = Math.max(2, people.length);
   const nScale = countScale(n);
 

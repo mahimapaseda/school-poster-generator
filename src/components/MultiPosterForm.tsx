@@ -327,7 +327,7 @@ export function MultiPosterForm({
         </div>
 
         {Array.from({ length: personCount }, (_, index) => {
-          const defaultPlacement = (Math.min(8, index + 1) as MultiPlacement);
+          const defaultPlacement = (Math.min(10, index + 1) as MultiPlacement);
           return (
             <PersonSlotEditor
               key={`person-slot-${index}`}
